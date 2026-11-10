@@ -358,7 +358,7 @@
 <script type="module" src="engine/main.js"></script>
 <script>try{ if("serviceWorker" in navigator && !/claude\.ai|claudeusercontent/.test(location.hostname)){
   const had=!!navigator.serviceWorker.controller;
-  navigator.serviceWorker.register("sw.js").then(r=>{ r.update().catch(()=>{}); document.addEventListener("visibilitychange",()=>{ if(!document.hidden) r.update().catch(()=>{}); }); }).catch(()=>{});
+  navigator.serviceWorker.register("sw.js",{updateViaCache:"none"}).then(r=>{ r.update().catch(()=>{}); document.addEventListener("visibilitychange",()=>{ if(!document.hidden) r.update().catch(()=>{}); }); }).catch(()=>{});
   // Neue Version geladen → Hinweis zum Aktualisieren (nur wenn vorher schon eine Version lief)
   navigator.serviceWorker.addEventListener("controllerchange",()=>{ if(!had||window.__updShown) return; window.__updShown=1;
     const b=document.createElement("button"); b.id="updBtn"; b.textContent="✨ Neue Version da – tippen zum Aktualisieren"; b.onclick=()=>location.reload(); document.body.appendChild(b); });
