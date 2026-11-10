@@ -1,0 +1,38 @@
+// Kapitel – À la maison de la presse (Découvertes Unité 2, Cahier: Verben auf -er Sg.+Pl.
+// (chercher, arriver, regarder, travailler, habiter, parler, trouver, écouter, porter, entrer, aimer, détester),
+// Qu'est-ce que c'est ? / Qui est-ce ?, le/la/l', être komplett, Liaison, Fragen mit où, Frankreich)
+export default {
+  id:'ch10b', titre:'À la maison de la presse', titel:'Im Zeitschriftenladen', scene:'rue',
+  icon:'📰', story:'Minou ist verschwunden! {N} sucht sie in der Straße und im kleinen Laden mit Zeitungen, Comics und Stiften.',
+  intro: { fr:'Où est Minou ?', ziel:'Minou ist weg! Beim Suchen lernst du Verben auf -er mit allen Formen, Schulsachen und Zeitschriften, Fragen mit „wo?“ und „was?“ und ein bisschen Frankreich.' },
+  steps:[
+    { type:'dialogue', lines:[
+      { fr:'Oh non ! Minou, le chat de la voisine, est parti !', de:'Oh nein! Minou, die Katze der Nachbarin, ist weg!' },
+      { fr:'On cherche Minou ensemble ? Allez !', de:'Suchen wir Minou zusammen? Los!' } ]},
+    { type:'choice', fr:'Je ___ Minou.', de:'Ich suche Minou.', options:['cherche','cherches','cherchent'], answer:'cherche', hints:['je → <b>-e</b>'],
+      note:'chercher: je cherch<b>e</b> · tu cherch<b>es</b> · il/elle/on cherch<b>e</b> – klingt dreimal gleich!', learn:[{fr:'je cherche · tu cherches · il/elle cherche', de:'suchen', gram:'-er-Verben: -e, -es, -e (gleich gesprochen)'}] },
+    { type:'fill', fr:'Tu ___ où, Coco ?', de:'Wo wohnst du, Coco?', answer:['habites'], hints:['habiter: tu <b>habit…</b>'], note:'tu habit<b>es</b> – Das -s spricht man nicht, schreibt es aber immer!' },
+    { type:'choice', fr:'– Tu habites où ? – J’___ rue des Lilas.', full:"– Tu habites où ? – J'habite rue des Lilas.", de:'– Wo wohnst du? – Ich wohne in der Rue des Lilas.', options:['habite','habites','habitons'], answer:'habite',
+      hints:['je → j’ vor h: j’habit<b>e</b>'], note:"<b>Tu habites où ?</b> – <b>J'habite</b> … · je → <b>j’</b> vor Vokal und stummem h", learn:[{fr:"Tu habites où ? – J'habite …", de:'Wo wohnst du? – Ich wohne …', gram:'je → j’ vor Vokal / h'}] },
+    { type:'teach', deck:'presse', range:[0,4], fr:'Dans la maison de la presse… Apprends les mots à {N} !', de:'Im Zeitschriftenladen … Bring {N} die Wörter bei!' },
+    { type:'teach', deck:'presse', range:[4,8], fr:'Et encore des choses !', de:'Und noch mehr Sachen!' },
+    { type:'choice', fr:"Qu'est-ce que c'est ? – C’est ___ BD.", de:'Was ist das? – Das ist ein Comic.', options:['une','un','le'], answer:'une', hints:['la BD → <b>une</b> BD'],
+      note:"Sachen: <b>Qu'est-ce que c'est ?</b> · Personen und Tiere: <b>Qui est-ce ?</b>" },
+    { type:'choice', fr:'___ ? – C’est Minou, le chat !', full:"Qui est-ce ? – C'est Minou, le chat !", de:'Wer ist das? – Das ist Minou, die Katze!', options:['Qui est-ce','Qu’est-ce que c’est'], answer:'Qui est-ce', hints:['Bei Tieren und Personen fragt man <b>Qui est-ce ?</b>'] },
+    { type:'choice', fr:'Nous ___ dans le magasin.', de:'Wir gehen in den Laden hinein.', options:['entrons','entrez','entrent'], answer:'entrons', hints:['nous → <b>-ons</b>'],
+      note:'entrer: nous entr<b>ons</b> · vous entr<b>ez</b> · ils/elles entr<b>ent</b> (-ent hört man nicht)' },
+    { type:'choice', fr:'Vous ___ un chat ? – Oui, un chat gris !', de:'Sucht ihr eine Katze? – Ja, eine graue Katze!', options:['cherchez','cherchons','cherches'], answer:'cherchez', hints:['vous → <b>-ez</b>'] },
+    { type:'fill', fr:'Coco et Minou ___ la télé.', de:'Coco und Minou schauen fern.', answer:['regardent'], hints:['ils → <b>-ent</b>: regard…'], note:'ils/elles regard<b>ent</b>' },
+    { type:'choice', fr:'Vous ___ français ?', de:'Sprechen Sie Französisch?', options:['parlez','parlons','parle'], answer:'parlez', hints:['vous → <b>-ez</b>'],
+      note:'🔗 Liaison: vou<b>s‿é</b>coutez, nou<b>s‿a</b>imons – vor einem Vokal spricht man das -s als [z]!', learn:[{fr:'vous‿écoutez · nous‿aimons', de:'Bindung (Liaison)', gram:'Liaison: -s + Vokal → [z]'}] },
+    { type:'listen', fr:'Écoute : tu entends la liaison ?', de:'Hör zu: Hörst du die Bindung?', options:['Nous aimons le sport.','Nous regardons le sport.','Nous parlons du sport.'], answer:'Nous aimons le sport.',
+      hints:['Nur vor einem <b>Vokal</b> gibt es die Bindung: nous‿aimons'] },
+    { type:'build', fr:'Dis ce que tu détestes !', de:'Bau den Satz: „Ich hasse Rap.“', tiles:['Je','déteste','le','rap','la','détestes'], answer:'Je déteste le rap', hints:['je → détest<b>e</b>'] },
+    { type:'choice', fr:'Coco ___ Minou dans un carton !', de:'Coco findet Minou in einem Karton!', options:['trouve','trouves','trouvent'], answer:'trouve', hints:['Coco = er/sie → <b>-e</b>'], note:'trouver = finden · le carton = der Karton' },
+    { type:'choice', fr:'Ouf ! Minou et Coco ___ là !', de:'Puh! Minou und Coco sind da!', options:['sont','sommes','êtes'], answer:'sont', hints:['ils/elles → <b>sont</b>'],
+      note:'être: je <b>suis</b> · tu <b>es</b> · il/elle/on <b>est</b> · nous <b>sommes</b> · vous <b>êtes</b> · ils/elles <b>sont</b>', learn:[{fr:'je suis · tu es · il est · nous sommes · vous êtes · ils sont', de:'sein', gram:'être – alle Formen'}] },
+    { type:'choice', fr:'Paris, Marseille, Toulouse… Ce sont des villes en ___.', de:'Paris, Marseille, Toulouse … Das sind Städte in Frankreich.', options:['France','Allemagne','Paris'], answer:'France',
+      hints:['Frankreich = <b>la France</b>'], note:'🇫🇷 la France · 🇩🇪 l’Allemagne · la Loire, le Rhin = Flüsse · le Mont-Blanc = höchster Berg' },
+    { type:'command', cmd:'viens', fr:'On rentre ! {N}, viens !', de:'Wir gehen heim! Ruf {N}: Komm!', hints:['<b>Vi…</b>'] },
+  ],
+};

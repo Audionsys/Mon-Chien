@@ -1,0 +1,2 @@
+{ "name":"Mon chien parle français", "short_name":"Mon chien", "start_url":"./", "display":"fullscreen", "orientation":"any",
+  "background_color":"#f6ead8", "theme_color":"#ff7a59", "icons":[{"src":"icon.png","sizes":"512x512","type":"image/png"}] }
