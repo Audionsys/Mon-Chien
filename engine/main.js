@@ -35,7 +35,7 @@ A.preloadMusic('music.mp3');
 function headScreen(){ const p=dog.headWorld(); p.y+=0.22; p.project(world.camera); return {x:(p.x*0.5+0.5)*innerWidth, y:(-p.y*0.5+0.5)*innerHeight}; }
 const fx={ hearts(n=3){ const s=headScreen(); UI.floatFx(s.x,s.y,['❤️','💛','✨','🧡'],n); } };
 dog.on('say',(t,ms)=>UI.dogSay(t,ms)); dog.on('hearts',n=>fx.hearts(n));
-export const VERSION='43';
+export const VERSION='44';
 try{ document.getElementById('ver').textContent='v'+VERSION; }catch(e){}
 function toast(html,ms=2600){ const t=$('toast'); t.innerHTML=N(html); t.classList.add('on'); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('on'),ms); }
 
@@ -394,7 +394,7 @@ function goFullscreen(){ if(IOS){ setTimeout(()=>iosHint(false),4000); return; }
 const canFS=!!(document.documentElement.requestFullscreen||document.documentElement.webkitRequestFullscreen);
 $('musicBtn').onclick=()=>{ A.audioCtx(); $('musicBtn').textContent=A.toggleMusic()?'🎵':'🔇'; };
 $('musicBtn').textContent=A.settings.music?'🎵':'🔇';
-$('treatsBtn').onclick=()=>openShop('coffre'); $('heartBtn').onclick=()=>{ A.sfx.tap(); openFriends(); }; renderHearts();
+$('treatsBtn').onclick=()=>openShop('coffre'); $('chap').style.cursor='pointer'; $('chap').onclick=()=>{ A.sfx.tap?.(); openChapters(); }; $('heartBtn').onclick=()=>{ A.sfx.tap(); openFriends(); }; renderHearts();
 $('carnetBtn').onclick=()=>{ openCarnet(); run.event('carnet'); }; $('menuBtn').onclick=openMenu; $('chap').onclick=()=>openMap();
 $('sheetClose').onclick=()=>UI.closeSheet(); $('sheetX').onclick=()=>UI.closeSheet();
 $('sheet').addEventListener('click',e=>{ if(e.target===$('sheet')) UI.closeSheet(); }); // Tipp neben das Fenster schließt
@@ -417,13 +417,21 @@ function openCarnet(){
   UI.openSheet(N('Le carnet de {N}'), N(h), {onOpen:b=>{ const r=b.querySelector('#revBtn'); if(r) r.onclick=()=>{ UI.closeSheet(); run.startReview(); }; }});
 }
 let testMode=(()=>{ try{ return localStorage.getItem('chien_test')==='1'; }catch(e){ return false; } })();
+function openChapters(){
+  let h=`<button class="row" id="mapBtn2"><b>🗺️ Die Lernreise (Karte)</b><small>Alle Stationen auf einen Blick</small></button>`;
+  COURSE.chapters.forEach((ch,i)=>{ const open=testMode||i<=P.unlocked; const done=P.results?.[ch.id]; h+=`<button class="row" data-ch="${i}" ${open?'':'disabled'}><b>${i+1}. ${esc(N(ch.titre))} ${i===P.chapter?'📍':done?'✅':''}</b><small>${esc(N(ch.titel))}${ch.unite?` · 📘 ${/\d/.test(ch.unite)?'Unité '+ch.unite:ch.unite}`:''}${open?'':' · 🔒'}</small></button>`; });
+  UI.openSheet('🗺️ Kapitel', h, {onOpen:b=>{ b.querySelector('#mapBtn2').onclick=()=>openMap();
+    b.querySelectorAll('[data-ch]').forEach(x=>x.onclick=()=>{ if(x.disabled) return; P.chapter=+x.dataset.ch; P.step=0; save(); run.review=null; run.freeplay=false; UI.closeSheet(); if(!P.name){P.chapter=0;} run.begin(); }); }});
+}
+function openDecks(){
+  let h=N('<p class="sub">Bring {N} Wörter bei – wie mit Karteikarten. Was {N} schon sicher kann, kommt seltener dran.</p>');
+  for(const id in DECKS){ const d=DECKS[id]; const n=d.words.length; const k=d.words.filter(w=>(P.items['v:'+w.fr]?.box||0)>=2).length;
+    h+=`<button class="row" data-deck="${id}"><b>${d.words[0].pic} ${esc(d.titre)} ${k>=n?'✅':''}</b><small>${esc(d.titel)} · ${k}/${n} sicher</small></button>`; }
+  UI.openSheet(N('📚 Vokabeln mit {N}'), h, {onOpen:b=>b.querySelectorAll('[data-deck]').forEach(x=>x.onclick=()=>{ UI.closeSheet(); run.startDeck(x.dataset.deck); })});
+}
 function openMenu(){
   let h=testMode?`<p class="sub" style="background:#fff1c9;border-radius:10px;padding:6px 9px">🧪 <b>Testmodus aktiv</b> – alle Kapitel offen. Vor dem Zug ausschalten!</p>`:'';
-  h+=`<button class="row" id="mapBtn"><b>🗺️ Die Lernreise (Karte)</b><small>Alle Stationen auf einen Blick</small></button><h3>Kapitel</h3>`;
-  COURSE.chapters.forEach((ch,i)=>{ const open=testMode||i<=P.unlocked; h+=`<button class="row" data-ch="${i}" ${open?'':'disabled'}><b>${i+1}. ${esc(N(ch.titre))}</b><small>${esc(N(ch.titel))}${ch.unite?` · 📘 ${/\d/.test(ch.unite)?'Unité '+ch.unite:ch.unite}`:''}${open?'':' · 🔒'}</small></button>`; });
-  h+=`<h3>📚 Vokabeln mit {N}</h3>`;
-  for(const id in DECKS){ const d=DECKS[id]; const n=d.words.length; const k=d.words.filter(w=>(P.items['v:'+w.fr]?.box||0)>=2).length;
-    h+=`<button class="row" data-deck="${id}"><b>${d.words[0].pic} ${esc(d.titre)}</b><small>${esc(d.titel)} · ${k}/${n} sicher</small></button>`; }
+  h+=`<div class="menutiles"><button id="chapBtnM"><span>🗺️</span><b>Kapitel</b><small>Lernreise & Kapitel wählen</small></button><button id="deckBtnM"><span>📚</span><b>Vokabeln</b><small>mit {N} üben</small></button><button id="badgeBtnM"><span>🏆</span><b>Abzeichen</b><small>${BADGES.filter(b=>(P.badges||{})[b.id]).length}/${BADGES.length}</small></button></div>`;
   h=N(h);
   h+=`<h3>Einstellungen</h3>
     <label class="set">🎵 Musik <input type="checkbox" id="setMusic" ${A.settings.music?'checked':''}></label>
@@ -446,7 +454,6 @@ function openMenu(){
     <h3>Für Eltern</h3>
     <a class="row" href="https://paypal.me/Audionsys" target="_blank" rel="noopener" style="text-decoration:none;color:inherit;display:block"><b>💛 Audionsys unterstützen</b><small>Gefällt euch das Spiel? Kleine Spende über PayPal – paypal.me/Audionsys</small></a>
     <button class="row" id="aboutBtn"><b>ℹ️ Über das Spiel & Credits</b><small>Audionsys · Unterstützen</small></button>
-    <button class="row" id="badgeBtn"><b>🏆 Abzeichen</b><small>${BADGES.filter(b=>(P.badges||{})[b.id]).length} von ${BADGES.length} gesammelt</small></button>
     <button class="row" id="weekBtn"><b>📅 Wochenrückblick</b><small>Für Eltern: geübt, neu gelernt, wackelt noch</small></button>
     <button class="row" id="resBtn"><b>📊 Ergebnisse der Hundeshows</b><small>Mini-Tests pro Kapitel</small></button>
     <button class="row" id="solBtn"><b>🔑 Alle Lösungen anzeigen</b><small>Übersicht pro Kapitel</small></button>
@@ -454,9 +461,7 @@ function openMenu(){
     ${testMode?`<button class="row" id="tJump"><b>🧪 Zu Aufgabe springen</b><small>Aktuelles Kapitel</small></button><button class="row" id="tMis"><b>🧪 Quatsch auslösen</b><small>Hund macht sofort Unsinn</small></button><button class="row" id="tDefi"><b>🧪 Hundeshow starten</b><small>Mini-Test dieses Kapitels</small></button>`:''}
     <button class="row" id="resetBtn"><b>🗑️ Spielstand löschen</b><small>Neuer Hund, alles von vorn</small></button>`;
   UI.openSheet('☰ Menü', h, {onOpen:b=>{
-    b.querySelectorAll('[data-ch]').forEach(x=>x.onclick=()=>{ if(x.disabled) return; P.chapter=+x.dataset.ch; P.step=0; save(); run.review=null; run.freeplay=false; UI.closeSheet(); if(!P.name){P.chapter=0;} run.begin(); });
-    b.querySelector('#mapBtn').onclick=()=>openMap();
-    b.querySelectorAll('[data-deck]').forEach(x=>x.onclick=()=>{ UI.closeSheet(); run.startDeck(x.dataset.deck); });
+    b.querySelector('#chapBtnM').onclick=openChapters; b.querySelector('#deckBtnM').onclick=openDecks; b.querySelector('#badgeBtnM').onclick=()=>openBadges();
     b.querySelector('#setMusic').onchange=e=>{ A.audioCtx(); if(e.target.checked!==A.settings.music){ $('musicBtn').textContent=A.toggleMusic()?'🎵':'🔇'; } };
     b.querySelectorAll('[data-z]').forEach(x=>x.onclick=()=>{ uiz=ZOOMS[+x.dataset.z]; applyZoom(); openMenu(); });
     const fb=b.querySelector('#fsBtn'); if(fb) fb.onclick=()=>{ UI.closeSheet(); if(IOS) iosHint(true); else goFullscreen(); };
@@ -471,7 +476,7 @@ function openMenu(){
       b.querySelector('#tJump').onclick=()=>{ const ch=run.chapter; if(!ch) return;
         UI.openSheet('🧪 Springen', ch.steps.map((st,i)=>`<button class="row" data-j="${i}"><b>${i+1}. ${st.type}</b><small>${esc(N(st.fr||st.de||(st.cmd?COMMANDS[st.cmd].fr:'')||st.deck||''))}</small></button>`).join(''),
           {onOpen:bb=>bb.querySelectorAll('[data-j]').forEach(x=>x.onclick=()=>{ P.step=+x.dataset.j; save(); run.review=null; UI.closeSheet(); run.begin(); })}); }; }
-    b.querySelector('#solBtn').onclick=openSolutions; b.querySelector('#renameBtn').onclick=openRename; b.querySelector('#genderBtn').onclick=()=>askGender(); b.querySelector('#dogBtn').onclick=openDogs; b.querySelector('#badgeBtn').onclick=openBadges; b.querySelector('#weekBtn').onclick=openWeek; b.querySelector('#aboutBtn').onclick=openAbout; b.querySelector('#resBtn').onclick=openResults;
+    b.querySelector('#solBtn').onclick=openSolutions; b.querySelector('#renameBtn').onclick=openRename; b.querySelector('#genderBtn').onclick=()=>askGender(); b.querySelector('#dogBtn').onclick=openDogs; b.querySelector('#weekBtn').onclick=openWeek; b.querySelector('#aboutBtn').onclick=openAbout; b.querySelector('#resBtn').onclick=openResults;
     b.querySelector('#saveBtn').onclick=openSave; b.querySelector('#loadBtn').onclick=openLoad; b.querySelector('#backupBtn').onclick=openBackups;
     const rb=b.querySelector('#resetBtn'); rb.onclick=()=>{ if(rb.dataset.sure){ reset(); location.reload(); } else { rb.dataset.sure=1; rb.innerHTML='<b>⚠️ Wirklich löschen? Nochmal tippen</b>'; } };
   }});

@@ -31,6 +31,9 @@
   .pill{pointer-events:auto;background:var(--card);border-radius:999px;padding:7px 12px;box-shadow:var(--shadow);font-weight:800;font-size:15px;display:flex;align-items:center;gap:5px;border:0;color:var(--ink);font-family:inherit}
   body{position:fixed;inset:0;width:100%}
   button.pill{cursor:pointer}
+  .menutiles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:4px 0 6px}
+  .menutiles button{border:0;border-radius:16px;background:linear-gradient(160deg,#fff7e8,#ffe7c7);padding:10px 6px;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;font-family:inherit;color:var(--ink);box-shadow:0 2px 8px rgba(160,110,40,.18)}
+  .menutiles span{font-size:28px} .menutiles b{font-size:15px} .menutiles small{font-size:11px;opacity:.7;text-align:center}
   #updBtn{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 90px);transform:translateX(-50%);z-index:40;border:0;border-radius:999px;padding:10px 18px;font:800 15px inherit;font-family:inherit;background:#2b7de9;color:#fff;box-shadow:0 6px 18px rgba(0,0,0,.25);cursor:pointer}
   .badges{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:8px;margin-top:8px}
   .badge{background:#f4ede2;border-radius:14px;padding:8px 6px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:1px;opacity:.75}

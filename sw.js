@@ -1,5 +1,5 @@
 // Offline-Speicher: Beim ersten Öffnen wird alles gemerkt – danach läuft das Spiel auch ohne Netz (z. B. im Zug).
-const CACHE='chien-v43';
+const CACHE='chien-v44';
 const FILES=['./','index.html','filou-model.js','music.mp3','manifest.json','icon.png','title.jpg','dogs/shepherd-model.js','dogs/filou.jpg','dogs/shepherd.jpg',
   'coco/idle.webp','coco/talk.webp','coco/point.webp','coco/laugh.webp','coco/fly.webp','engine/coco.js','engine/badges.js','engine/main.js','engine/scene.js','engine/dog.js','engine/poses.js','engine/lang.js','engine/ui.js','engine/audio.js','engine/progress.js','engine/steps.js','engine/items.js',
   'content/course.js','content/commands.js','content/lexique.js','content/scenes.js','content/world.js','content/vocab.js','content/dog.js','content/betises.js','content/items.js','content/banter.js',
