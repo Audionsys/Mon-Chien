@@ -14,7 +14,7 @@ export function createWorld(canvas){
   scene.environment=pmrem.fromScene(new RoomEnvironment(),0.04).texture; scene.environmentIntensity=0.35;
   const camera=new THREE.PerspectiveCamera(38,1,0.25,45);
   scene.add(new THREE.HemisphereLight('#fff4e0','#8a6a4a',0.9));
-  const sun=new THREE.DirectionalLight('#ffe7c4',2.4); sun.position.set(-2.5,4.5,-1.5); sun.castShadow=true; sun.shadow.mapSize.set(1024,1024);
+  const sun=new THREE.DirectionalLight('#ffe7c4',2.4); sun.position.set(-2.5,4.5,-1.5); sun.castShadow=true; sun.shadow.mapSize.set(2048,2048); sun.shadow.radius=3;
   Object.assign(sun.shadow.camera,{left:-4,right:4,top:4,bottom:-4,near:0.5,far:14}); sun.shadow.bias=-0.0008; sun.shadow.normalBias=0.035; scene.add(sun);
   const rim=new THREE.DirectionalLight('#bcd8ff',1.6); rim.position.set(2.5,2.5,-4); scene.add(rim);
   const fill=new THREE.DirectionalLight('#ffffff',0.7); fill.position.set(1,2,5); scene.add(fill);

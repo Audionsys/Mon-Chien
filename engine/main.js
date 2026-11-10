@@ -35,7 +35,7 @@ A.preloadMusic('music.mp3');
 function headScreen(){ const p=dog.headWorld(); p.y+=0.22; p.project(world.camera); return {x:(p.x*0.5+0.5)*innerWidth, y:(-p.y*0.5+0.5)*innerHeight}; }
 const fx={ hearts(n=3){ const s=headScreen(); UI.floatFx(s.x,s.y,['❤️','💛','✨','🧡'],n); } };
 dog.on('say',(t,ms)=>UI.dogSay(t,ms)); dog.on('hearts',n=>fx.hearts(n));
-export const VERSION='46';
+export const VERSION='47';
 try{ document.getElementById('ver').textContent='v'+VERSION; }catch(e){}
 function toast(html,ms=2600){ const t=$('toast'); t.innerHTML=N(html); t.classList.add('on'); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('on'),ms); }
 
@@ -624,7 +624,9 @@ function frame(now){
   camT.x=THREE.MathUtils.lerp(camT.x,dp.x,dt*1.8);
   camT.z=THREE.MathUtils.lerp(camT.z,THREE.MathUtils.clamp(dp.z*(portrait?0.7:0.45),-1.2,1),dt*1.8);
   const cam=world.camera; cam.position.set(camT.x, portrait?1.75:2.1, camT.z+dist); cam.lookAt(camT.x, portrait?0.05:0.3, camT.z-0.3);
-  world.sun.position.set(dp.x-2.5,4.5,dp.z-1.5); world.sun.target.position.set(dp.x,0,dp.z); world.sun.target.updateMatrixWorld();
+  // Schattenbereich nur ab und zu nachziehen (in festen Schritten) – ständiges Mitwandern lässt die Schatten flimmern
+  if(!window.__sunC || Math.hypot(dp.x-__sunC.x,dp.z-__sunC.z)>1.4){ window.__sunC={x:Math.round(dp.x*2)/2, z:Math.round(dp.z*2)/2};
+    world.sun.position.set(__sunC.x-2.5,4.5,__sunC.z-1.5); world.sun.target.position.set(__sunC.x,0,__sunC.z); world.sun.target.updateMatrixWorld(); }
   if(titleCam){ const t=performance.now()/1000, por=innerWidth<innerHeight, r=por?2.3:1.9, a=Math.sin(t*0.25)*0.55; const dp2=dog.root.position; cam.position.set(dp2.x+Math.sin(a)*r, 0.75, dp2.z+Math.cos(a)*r); cam.lookAt(dp2.x, por?0.62:0.5, dp2.z); }
   // Hund in die freie Lücke zwischen Sprechblase und Knöpfen rücken
   if(!titleCam && started){ freeT-=dt; if(freeT<=0){ freeT=0.25; const W=innerWidth,H=innerHeight; const cb=$('coco').getBoundingClientRect(), bb=$('bottom').getBoundingClientRect(); const land=W>H && H<520;
