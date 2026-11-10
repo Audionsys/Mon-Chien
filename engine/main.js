@@ -35,7 +35,7 @@ A.preloadMusic('music.mp3');
 function headScreen(){ const p=dog.headWorld(); p.y+=0.22; p.project(world.camera); return {x:(p.x*0.5+0.5)*innerWidth, y:(-p.y*0.5+0.5)*innerHeight}; }
 const fx={ hearts(n=3){ const s=headScreen(); UI.floatFx(s.x,s.y,['❤️','💛','✨','🧡'],n); } };
 dog.on('say',(t,ms)=>UI.dogSay(t,ms)); dog.on('hearts',n=>fx.hearts(n));
-export const VERSION='44';
+export const VERSION='45';
 try{ document.getElementById('ver').textContent='v'+VERSION; }catch(e){}
 function toast(html,ms=2600){ const t=$('toast'); t.innerHTML=N(html); t.classList.add('on'); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('on'),ms); }
 
@@ -223,7 +223,7 @@ dog.on('particles',(k,pos)=>particles.spawn(k,pos));
 // ---------- Quatsch-System ----------
 const MIS={ active:null, saved:null, lastInput:performance.now(), next:45000+Math.random()*20000 };
 function bump(){ MIS.lastInput=performance.now(); }
-function canMischief(){ return started && !MIS.active && !pendingGive && !cocoSaved && !$('sheet').classList.contains('open') && run.step && run.step.type!=='name' && document.activeElement!==inp; }
+function canMischief(){ return started && !!P.name && P.chapter>0 && !MIS.active && !pendingGive && !cocoSaved && !$('sheet').classList.contains('open') && run.step && run.step.type!=='name' && document.activeElement!==inp; }
 function startMischief(kind){ Coco.laugh(3000);
   const list=roomDef(dogRoom())?.betises||[]; kind=kind||list[Math.floor(Math.random()*list.length)]; const B=BETISES[kind]; if(!B) return;
   if(!dog.mischief(kind)) return;
@@ -610,7 +610,7 @@ function openSolutions(){
 // ---------- Loop ----------
 const camT=new THREE.Vector3(0,0.3,0.2); let titleCam=false; let freeT=0; const freeGoal={x:0,y:0}, freeOff={x:0,y:0};
 let lastW=0,lastH=0;
-function resize(){ const w=innerWidth,h=innerHeight; if(w===lastW&&h===lastH) return; lastW=w; lastH=h; world.renderer.setSize(w,h,false); world.camera.aspect=w/h; world.camera.fov=w<h?48:38; world.camera.updateProjectionMatrix(); }
+function resize(){ const cv=world.renderer.domElement; const w=Math.round(cv.clientWidth||innerWidth), h=Math.round(cv.clientHeight||innerHeight); if(w===lastW&&h===lastH) return; lastW=w; lastH=h; world.renderer.setSize(w,h,false); world.camera.aspect=w/h; world.camera.fov=w<h?48:38; world.camera.updateProjectionMatrix(); }
 addEventListener('resize',()=>{ resize(); setTimeout(resize,350); setTimeout(resize,900); }); resize();
 for(const ev of ['fullscreenchange','webkitfullscreenchange','orientationchange']) document.addEventListener(ev,()=>{ setTimeout(resize,300); setTimeout(resize,900); });
 addEventListener('orientationchange',()=>setTimeout(resize,500));
