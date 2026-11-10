@@ -41,7 +41,7 @@ import ch1d from './chapitre1d.js';
 import ch10b from './chapitre10b.js';
 import ch11b from './chapitre11b.js';
 
-// Reihenfolge nach dem Schulbuch (Découvertes 1 Bayern). Kapitel werden über ihre id gemerkt –
+// Reihenfolge nach dem Lehrplan 6. Klasse (2. Fremdsprache, Bayern). Kapitel werden über ihre id gemerkt –
 // Umsortieren oder Einfügen verliert keinen Spielstand.
 const chapters=[ ch1, ch1b, ch1c, ch1d, ch10, ch10b, ch2, ch3, ch6, ch11, ch11b, ch5, ch9, ch12, ch4, ch8, ch13, ch7, ch14, ch15 ];
 // Zuordnung zur Unité im Buch (wird im Spiel angezeigt)

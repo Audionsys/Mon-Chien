@@ -1,4 +1,4 @@
-// Kapitel – Qui est-ce ? (Découvertes Unité 1, Cahier: Qui est-ce ?/C'est …, un/une + Personen,
+// Kapitel – Qui est-ce ? (Lernstufe 1: Qui est-ce ?/C'est …, un/une + Personen,
 // Tu es d'où ?, aussi, ici, Ausrufe, Oui/Qui, et/est/es, Akzente/Apostroph/Cédille, Zahlen-Code)
 export default {
   id:'ch1d', titre:'Qui est-ce ?', titel:'Wer ist das?', scene:'jardin',

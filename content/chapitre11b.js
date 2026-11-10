@@ -1,4 +1,4 @@
-// Kapitel – Le cadeau surprise (Découvertes Unité 3, Cahier: mon/ton/son, ma/ta/sa, mes/tes/ses,
+// Kapitel – Le cadeau surprise (Lernstufe 3: mon/ton/son, ma/ta/sa, mes/tes/ses,
 // des/les, avoir, préférer/acheter, Zahlen & Telefonnummern, Familie, kleine Wörter (d'abord, puis, demain …),
 // Geburtstagskarte schreiben)
 export default {

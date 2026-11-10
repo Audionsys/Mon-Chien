@@ -1,4 +1,4 @@
-// Kapitel – Une journée au collège (Découvertes Unité 4: aller, faire, Uhrzeit, Wochentage, Fächer,
+// Kapitel – Une journée au collège (Lernstufe 4: aller, faire, Uhrzeit, Wochentage, Fächer,
 // ne … plus / jamais / rien, notre/votre/leur, Zahlen bis 60)
 export default {
   id:'ch12', unite:'4', titre:'Une journée au collège', titel:'Ein Schultag', scene:'classe',

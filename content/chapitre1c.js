@@ -1,4 +1,4 @@
-// Kapitel – Les amis (Découvertes Unité 1: être Sg., je/tu/il/elle, un/une, Zahlen 1–12, Befinden, Dank & Entschuldigung)
+// Kapitel – Les amis (Lernstufe 1: être Sg., je/tu/il/elle, un/une, Zahlen 1–12, Befinden, Dank & Entschuldigung)
 export default {
   id:'ch1c', titre:'Les nouveaux amis', titel:'Neue Freunde', scene:'salon',
   icon:'🤝', story:'{N} lernt neue Freunde kennen: Minou, die Katze von nebenan – und zählt mit Coco Leckerlis.',

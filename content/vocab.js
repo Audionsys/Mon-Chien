@@ -75,7 +75,7 @@ export const DECKS = {
     { pic:'🎨', fr:'le dessin', de:'das Zeichnen' },                    { pic:'🏊', fr:'la natation', de:'das Schwimmen' },
     { pic:'🎮', fr:'les jeux vidéo', de:'die Videospiele', alt:['les jeux video'] }, { pic:'🎬', fr:'le cinéma', de:'das Kino', alt:['le cinema'] },
   ]},
-  // ---------- Découvertes Unité 3–7 ----------
+  // ---------- Lernstufen 3–7 ----------
   anniversaire: { titre:'Joyeux anniversaire !', titel:'Geburtstag', words:[
     { pic:'🎂', fr:'le gâteau', de:'der Kuchen', alt:['le gateau'] },   { pic:'🕯️', fr:'la bougie', de:'die Kerze' },
     { pic:'🎁', fr:'le cadeau', de:'das Geschenk' },                    { pic:'🎈', fr:'le ballon', de:'der Luftballon' },
@@ -126,7 +126,7 @@ export const DECKS = {
     { pic:'🚆', fr:'le train', de:'der Zug' }, { pic:'🚕', fr:'le taxi', de:'das Taxi' }, { pic:'🚋', fr:'le tram', de:'die Straßenbahn' }, { pic:'⛴️', fr:'le bateau', de:'das Schiff' },
     { pic:'✈️', fr:"l'avion", de:'das Flugzeug', alt:['avion'] }, { pic:'🎫', fr:'le billet', de:'die Fahrkarte' }, { pic:'🗺️', fr:'le plan', de:'der Stadtplan' }, { pic:'✉️', fr:'la carte postale', de:'die Postkarte' },
   ]},
-  // ---------- aus dem Cahier, Unités 1–3 ----------
+  // ---------- Ergänzungen Lernstufen 1–3 ----------
   gens: { titre:'Les gens', titel:'Leute', words:[
     { pic:'👦', fr:'un garçon', de:'ein Junge' }, { pic:'👧', fr:'une fille', de:'ein Mädchen' },
     { pic:'🧑', fr:'un copain', de:'ein Freund (Kumpel)' }, { pic:'👩', fr:'une copine', de:'eine Freundin' },

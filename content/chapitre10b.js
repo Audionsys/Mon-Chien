@@ -1,4 +1,4 @@
-// Kapitel – À la maison de la presse (Découvertes Unité 2, Cahier: Verben auf -er Sg.+Pl.
+// Kapitel – À la maison de la presse (Lernstufe 2: Verben auf -er Sg.+Pl.
 // (chercher, arriver, regarder, travailler, habiter, parler, trouver, écouter, porter, entrer, aimer, détester),
 // Qu'est-ce que c'est ? / Qui est-ce ?, le/la/l', être komplett, Liaison, Fragen mit où, Frankreich)
 export default {

@@ -1,4 +1,4 @@
-// Kapitel – Les loisirs (Découvertes Unité 2: Verben auf -er, être Pl., le/la/l', Fragen, on, Hobbys, Vorlieben & Abneigungen)
+// Kapitel – Les loisirs (Lernstufe 2: Verben auf -er, être Pl., le/la/l', Fragen, on, Hobbys, Vorlieben & Abneigungen)
 export default {
   id:'ch10', titre:'On joue ?', titel:'Hobbys & Freizeit', scene:'salon',
   icon:'⚽', story:'Wochenende! {N} will spielen – und du erzählst, was du gerne machst und was nicht.',

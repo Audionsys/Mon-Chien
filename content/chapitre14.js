@@ -1,4 +1,4 @@
-// Kapitel – La fête de la musique (Découvertes Unité 6: Adjektive – Angleichung & Stellung, Verben auf -dre,
+// Kapitel – La fête de la musique (Lernstufe 6: Adjektive – Angleichung & Stellung, Verben auf -dre,
 // dire, direktes/indirektes Objekt, de bei Verneinung, Mengenangaben, Farben, Feste & Musik)
 export default {
   id:'ch14', unite:'6', titre:'La fête de la musique', titel:'Musikfest im Garten', scene:'jardin',

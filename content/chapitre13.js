@@ -1,4 +1,4 @@
-// Kapitel – Au snack (Découvertes Unité 5: futur proche, Imperativ, prendre, est-ce que, faire du/de la,
+// Kapitel – Au snack (Lernstufe 5: futur proche, Imperativ, prendre, est-ce que, faire du/de la,
 // pourquoi – parce que, Essen & Getränke bestellen, Zahlen bis 100, Weg beschreiben)
 export default {
   id:'ch13', unite:'5', titre:'On va au snack !', titel:'Unterwegs im Viertel', scene:'rue',

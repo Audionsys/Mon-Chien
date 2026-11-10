@@ -1,4 +1,4 @@
-// Kapitel – Paris, on y va ! (Découvertes Unité 7: vouloir, pouvoir, lire, écrire, ce/cet/cette/ces, quel,
+// Kapitel – Paris, on y va ! (Lernstufe 7: vouloir, pouvoir, lire, écrire, ce/cet/cette/ces, quel,
 // direkte Objektpronomen le/la/les, Verkehrsmittel, Sehenswürdigkeiten, Tickets, Meinungen, Postkarte)
 export default {
   id:'ch15', unite:'7', titre:'Paris, on y va !', titel:'Stadtrallye durch Paris', scene:'rue',

@@ -1,4 +1,4 @@
-// Kapitel – Joyeux anniversaire ! (Découvertes Unité 3: avoir, Alter, Monate & Datum, Zahlen bis 39,
+// Kapitel – Joyeux anniversaire ! (Lernstufe 3: avoir, Alter, Monate & Datum, Zahlen bis 39,
 // Artikel im Plural (les/des), acheter, préférer, aimer/détester, Possessivbegleiter)
 export default {
   id:'ch11', unite:'3', titre:'Joyeux anniversaire !', titel:'Geburtstag feiern', scene:'salon',
