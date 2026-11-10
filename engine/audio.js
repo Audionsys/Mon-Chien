@@ -63,8 +63,18 @@ function noise(t,dur,{freq=1000,q=1,peak=0.2,type='bandpass'}={}){ const n=ctx.c
   const f=ctx.createBiquadFilter(); f.type=type; f.frequency.value=freq; f.Q.value=q; const g=ctx.createGain(); env(g,t,0.005,peak,dur); n.connect(f); f.connect(g); g.connect(sfxGain); n.start(t); n.stop(t+dur+0.05); }
 function ok(){ return settings.sfx && audioCtx(); }
 
+// Echtes Hundebellen (CC0, freesound.org „barking dog 2“ von ivolipa), geschnitten in einzelne Beller
+const BARK_FILES=['sfx/bark1.mp3','sfx/bark2.mp3','sfx/bark3.mp3','sfx/bark4.mp3'], barkData=[], barkBuf=[]; let lastBark=-1;
+BARK_FILES.forEach((u,i)=>fetch(u).then(r=>r.ok?r.arrayBuffer():null).then(b=>{ if(b) barkData[i]=b; }).catch(()=>{}));
+async function barkBuffers(){ const a=ctx; for(let i=0;i<BARK_FILES.length;i++) if(!barkBuf[i] && barkData[i]){ try{ barkBuf[i]=await a.decodeAudioData(barkData[i].slice(0)); }catch(e){} } return barkBuf.filter(Boolean); }
+function playBark(t){ const bufs=barkBuf.filter(Boolean); if(!bufs.length) return false;
+  let k=Math.floor(Math.random()*bufs.length); if(bufs.length>1&&k===lastBark) k=(k+1)%bufs.length; lastBark=k;
+  const src=ctx.createBufferSource(); src.buffer=bufs[k]; src.playbackRate.value=0.94+Math.random()*0.14;
+  const g=ctx.createGain(); g.gain.value=0.85; src.connect(g); g.connect(sfxGain); src.start(t); return true; }
 export const sfx = {
-  bark(n=2){ if(!ok()) return; for(let i=0;i<n;i++){ const t=ctx.currentTime+i*0.28;
+  bark(n=2){ if(!ok()) return; barkBuffers();
+    if(barkBuf.some(Boolean)){ for(let i=0;i<n;i++) playBark(ctx.currentTime+i*(0.32+Math.random()*0.08)); return; }
+    for(let i=0;i<n;i++){ const t=ctx.currentTime+i*0.28;
       const o=ctx.createOscillator(); o.type='sawtooth'; o.frequency.setValueAtTime(560,t); o.frequency.exponentialRampToValueAtTime(250,t+0.15);
       const bp=ctx.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=950; bp.Q.value=1.6; const lp=ctx.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=2600;
       const g=ctx.createGain(); env(g,t,0.012,0.45,0.16); o.connect(bp); bp.connect(lp); lp.connect(g); g.connect(sfxGain); o.start(t); o.stop(t+0.22);

@@ -35,7 +35,7 @@ A.preloadMusic('music.mp3');
 function headScreen(){ const p=dog.headWorld(); p.y+=0.22; p.project(world.camera); return {x:(p.x*0.5+0.5)*innerWidth, y:(-p.y*0.5+0.5)*innerHeight}; }
 const fx={ hearts(n=3){ const s=headScreen(); UI.floatFx(s.x,s.y,['❤️','💛','✨','🧡'],n); } };
 dog.on('say',(t,ms)=>UI.dogSay(t,ms)); dog.on('hearts',n=>fx.hearts(n));
-export const VERSION='47';
+export const VERSION='48';
 try{ document.getElementById('ver').textContent='v'+VERSION; }catch(e){}
 function toast(html,ms=2600){ const t=$('toast'); t.innerHTML=N(html); t.classList.add('on'); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('on'),ms); }
 
@@ -586,6 +586,7 @@ function openAbout(){
     <div class="entry"><div class="x"><div class="d">3D-Hund</div><div class="f">Meshy AI</div></div></div>
     <div class="entry"><div class="x"><div class="d">Programmierung & Inhalte</div><div class="f">mit Claude (Anthropic)</div></div></div>
     <div class="entry"><div class="x"><div class="d">3D-Technik</div><div class="f">three.js</div></div></div>
+    <div class="entry"><div class="x"><div class="d">Hundebellen</div><div class="f">„barking dog 2“ von ivolipa</div><div class="g">freesound.org · CC0</div></div></div>
     <p style="margin:14px 0 6px"><a href="https://audionsys.de" target="_blank" rel="noopener" class="linkbtn">🌐 audionsys.de</a></p>
     <h3>Unterstützen</h3>
     <p class="sub">Das Spiel ist kostenlos. Wenn es euch gefällt und beim Lernen hilft, freut sich Audionsys über eine kleine Spende – damit noch mehr Kapitel entstehen können. 💛</p>
