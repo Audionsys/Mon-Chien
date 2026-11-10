@@ -78,7 +78,9 @@ export class Dog {
   }
   _setup(gltf){
     const model=gltf.scene; this.inner.add(model); let skinned;
-    model.traverse(o=>{ if(o.isMesh){ o.castShadow=true; o.frustumCulled=false; skinned=o; const m=o.material; if(m){ m.metalness=0; m.roughness=Math.max(0.65,m.roughness??0.8); m.envMapIntensity=1.2; } }
+    model.traverse(o=>{ if(o.isMesh){ o.castShadow=true; o.frustumCulled=false; skinned=o; const m=o.material; if(m){ m.metalness=0; m.roughness=Math.max(0.65,m.roughness??0.8); m.envMapIntensity=1.2;
+        // Meshy-Modelle sind „doppelseitig“: Vorder- und Rückseite liegen aufeinander und kämpfen um die Tiefe → Flimmern. Nur Vorderseite zeichnen.
+        m.side=THREE.FrontSide; m.shadowSide=THREE.FrontSide; m.transparent=false; m.depthWrite=true; m.needsUpdate=true; } }
       if(o.isBone) this.allBones.push(o); });
     const byName={}; this.allBones.forEach(b=>byName[b.name]=b);
     for(const logical in DOG.bones){ const b=byName[DOG.bones[logical]]; if(b) this.bones[logical]=b; }
