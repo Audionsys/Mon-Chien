@@ -5,7 +5,7 @@ import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.j
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
 // Echte 3D-Modelle (Poly Haven, CC0) ersetzen gezeichnete Gegenstände. Die gezeichnete Form bleibt unsichtbar als Tipp-Fläche (Wörter bleiben erhalten).
-const REAL={ bench:{url:'models/bench.glb',fit:'box',rotY:Math.PI}, flowers:{url:'models/flowers.glb',fit:'box'} };
+const REAL={ bench:{url:'models/bench.glb',fit:'h'}, flowers:{url:'models/flowers.glb',fit:'h',h:0.55} };
 const _gl=new GLTFLoader(), _cache={};
 function realize(obj,cfg){
   const keep={p:obj.position.clone(),r:obj.rotation.clone(),s:obj.scale.clone()}; obj.position.set(0,0,0); obj.rotation.set(0,0,0); obj.scale.set(1,1,1); obj.updateMatrixWorld(true);
