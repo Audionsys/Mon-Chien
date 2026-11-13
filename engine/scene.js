@@ -2,6 +2,24 @@
 import * as THREE from 'three';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+
+// Echte 3D-Modelle (Poly Haven, CC0) ersetzen gezeichnete Gegenstände. Die gezeichnete Form bleibt unsichtbar als Tipp-Fläche (Wörter bleiben erhalten).
+const REAL={ bench:{url:'models/bench.glb',fit:'box',rotY:Math.PI}, flowers:{url:'models/flowers.glb',fit:'box'} };
+const _gl=new GLTFLoader(), _cache={};
+function realize(obj,cfg){
+  const keep={p:obj.position.clone(),r:obj.rotation.clone(),s:obj.scale.clone()}; obj.position.set(0,0,0); obj.rotation.set(0,0,0); obj.scale.set(1,1,1); obj.updateMatrixWorld(true);
+  const pb=new THREE.Box3().setFromObject(obj); obj.position.copy(keep.p); obj.rotation.copy(keep.r); obj.scale.copy(keep.s);
+  (_cache[cfg.url]??=new Promise((res,rej)=>_gl.load(cfg.url,g=>res(g.scene),undefined,rej))).then(src=>{
+    const m=src.clone(true); if(cfg.rotY){ const w=new THREE.Group(); w.add(m); m.rotation.y=cfg.rotY; src=null; return place(w); } return place(m);
+    function place(m){ m.updateMatrixWorld(true); const mb=new THREE.Box3().setFromObject(m), ms=mb.getSize(new THREE.Vector3()), ps=pb.getSize(new THREE.Vector3());
+    if(cfg.fit==='box') m.scale.set(ps.x/ms.x, ps.y/ms.y, ps.z/ms.z); else { const k=(cfg.h||ps.y)/ms.y; m.scale.setScalar(k); }
+    m.updateMatrixWorld(true); const b2=new THREE.Box3().setFromObject(m), c2=b2.getCenter(new THREE.Vector3()), pc=pb.getCenter(new THREE.Vector3());
+    m.position.set(pc.x-c2.x, pb.min.y-b2.min.y, pc.z-c2.z);
+    m.traverse(o=>{ if(o.isMesh){ o.castShadow=true; o.receiveShadow=true; const mt=o.material; if(mt){ mt.metalness=0; mt.envMapIntensity=0.9; } o.userData.real=true; } });
+    obj.traverse(o=>{ if(o.isMesh&&!o.userData.real) o.visible=false; }); obj.add(m); }
+  }).catch(()=>{}); }
+
 
 export function createWorld(canvas){
   const renderer=new THREE.WebGLRenderer({canvas, antialias:true});
@@ -446,7 +464,7 @@ export function buildRoom(world, def){
   const props=new Map(); const obstacles=[]; const pickables=[];
   if(wallMeshes.length){ props.set('mur',{id:'mur',type:'wall',pos:[0,-R.d/2],word:{fr:'le mur',de:'die Wand'},object:wallMeshes[0]}); wallMeshes.forEach(m=>{ m.userData.propId='mur'; pickables.push(m); }); }
   for(const p of def.props){
-    const obj=BUILD[p.type](); obj.position.set(p.pos[0],p.y||0,p.pos[1]); if(p.rot) obj.rotation.y=p.rot; if(p.scale) obj.scale.setScalar(p.scale); root.add(obj);
+    const obj=BUILD[p.type](); obj.position.set(p.pos[0],p.y||0,p.pos[1]); if(p.rot) obj.rotation.y=p.rot; if(p.scale) obj.scale.setScalar(p.scale); root.add(obj); if(REAL[p.type]) realize(obj,REAL[p.type]);
     obj.traverse(m=>{ if(m.isMesh){ m.userData.propId=p.id; pickables.push(m); } });
     const entry={...p, object:obj, home:obj.position.clone()};
     if(p.block) obstacles.push({x:p.pos[0],z:p.pos[1],w:p.block[0],d:p.block[1]});
@@ -476,6 +494,7 @@ export function buildRoom(world, def){
 //  WELT: zusammenhängende Räume (Haus + Garten). Der Hund läuft von Raum zu Raum.
 // ======================================================================
 function floorTexOf(kind){
+  if(kind==='grass'&&!floorTexOf.fallback){ const t=new THREE.TextureLoader().load('models/grass.jpg'); t.wrapS=t.wrapT=THREE.RepeatWrapping; t.repeat.set(5,4); t.colorSpace=THREE.SRGBColorSpace; t.anisotropy=4; return t; }
   if(kind==='grass') return canvasTex(512,512,(g,w,h)=>{ g.fillStyle='#7cc56a'; g.fillRect(0,0,w,h); for(let i=0;i<5000;i++){ g.fillStyle=['#6bb85a','#8fd27a','#5fa84f','#9adb84'][i%4]; g.fillRect(Math.random()*w,Math.random()*h,2,5+Math.random()*5); } },[4,4]);
   if(kind==='tiles') return canvasTex(512,512,(g,w,h)=>{ for(let y=0;y<8;y++) for(let x=0;x<8;x++){ g.fillStyle=(x+y)%2?'#f6efe4':'#e9dcc8'; g.fillRect(x*64,y*64,64,64); } g.strokeStyle='rgba(0,0,0,.08)'; for(let i=0;i<=8;i++){ g.beginPath(); g.moveTo(i*64,0); g.lineTo(i*64,h); g.stroke(); g.beginPath(); g.moveTo(0,i*64); g.lineTo(w,i*64); g.stroke(); } },[3,3]);
   if(kind==='pave') return canvasTex(512,512,(g,w,h)=>{ g.fillStyle='#9a958c'; g.fillRect(0,0,w,h); for(let y=0;y<16;y++) for(let x=0;x<16;x++){ g.fillStyle=['#aaa59b','#b3aea4','#a19c92','#bab5aa'][(x*7+y*3)%4]; g.beginPath(); g.arc(x*32+16+(y%2)*16,y*32+16,14,0,7); g.fill(); } },[4,3]);
@@ -512,7 +531,7 @@ export function buildWorld(world, W){
     // Gegenstände (Koordinaten relativ zur Raummitte)
     for(const p of (R.props||[])){
       if(!BUILD[p.type]) continue;
-      const obj=BUILD[p.type](); const gx=rx+p.pos[0], gz=rz+p.pos[1]; obj.position.set(gx,p.y||0,gz); if(p.rot) obj.rotation.y=p.rot; if(p.scale) obj.scale.setScalar(p.scale); root.add(obj);
+      const obj=BUILD[p.type](); const gx=rx+p.pos[0], gz=rz+p.pos[1]; obj.position.set(gx,p.y||0,gz); if(p.rot) obj.rotation.y=p.rot; if(p.scale) obj.scale.setScalar(p.scale); root.add(obj); if(REAL[p.type]) realize(obj,REAL[p.type]);
       obj.traverse(m=>{ if(m.isMesh){ m.userData.propId=p.id; pickables.push(m); } });
       const e={...p, room:R.id, pos:[gx,gz], spot:p.spot?[rx+p.spot[0],rz+p.spot[1]]:null, enter:p.enter?{...p.enter,pos:[rx+p.enter.pos[0],rz+p.enter.pos[1]]}:null, object:obj, home:obj.position.clone()};
       if(p.block) obstacles.push({x:gx,z:gz,w:p.block[0],d:p.block[1]});

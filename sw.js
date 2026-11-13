@@ -1,6 +1,6 @@
 // Offline-Speicher: Beim ersten Öffnen wird alles gemerkt – danach läuft das Spiel auch ohne Netz (z. B. im Zug).
-const CACHE='chien-v50';
-const FILES=['./','index.html','filou-model.js','music.mp3','manifest.json','icon.png','title.jpg','sfx/bark1.mp3','sfx/bark2.mp3','sfx/bark3.mp3','sfx/bark4.mp3','dogs/shepherd-model.js','dogs/filou.jpg','dogs/shepherd.jpg','dogs/juna.jpg',
+const CACHE='chien-v51';
+const FILES=['./','index.html','filou-model.js','music.mp3','manifest.json','icon.png','title.jpg','sfx/bark1.mp3','sfx/bark2.mp3','sfx/bark3.mp3','sfx/bark4.mp3','dogs/shepherd-model.js','dogs/filou.jpg','dogs/shepherd.jpg','dogs/juna.jpg','models/bench.glb','models/flowers.glb','models/grass.jpg',
   'coco/idle.webp','coco/talk.webp','coco/point.webp','coco/laugh.webp','coco/fly.webp','engine/coco.js','engine/badges.js','engine/main.js','engine/scene.js','engine/dog.js','engine/poses.js','engine/lang.js','engine/ui.js','engine/audio.js','engine/progress.js','engine/steps.js','engine/items.js',
   'content/course.js','content/commands.js','content/lexique.js','content/scenes.js','content/world.js','content/vocab.js','content/dog.js','content/betises.js','content/items.js','content/banter.js',
   'content/chapitre1.js','content/chapitre1b.js','content/chapitre2.js','content/chapitre3.js','content/chapitre4.js','content/chapitre5.js','content/chapitre6.js','content/chapitre7.js','content/chapitre8.js','content/chapitre9.js','content/chapitre1c.js','content/chapitre10.js','content/chapitre11.js','content/chapitre12.js','content/chapitre13.js','content/chapitre14.js','content/chapitre15.js','content/chapitre1d.js','content/chapitre10b.js','content/chapitre11b.js',

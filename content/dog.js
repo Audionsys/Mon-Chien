@@ -29,7 +29,7 @@ export const DOGS = [
   { id:'filou',    name:'Der Kleine',     de:'kurzes, glänzendes Fell', pic:'dogs/filou.jpg',    model:'filou-model.js',          height:0.62 },
   { id:'shepherd', name:'Der Schäferhund', de:'größer, mit Blesse',      pic:'dogs/shepherd.jpg', model:'dogs/shepherd-model.js', height:0.70 },
   { id:'juna',     name:'Juna',            de:'schwarz, schlank, Stehohren', pic:'dogs/juna.jpg', model:'dogs/juna.glb', height:0.62,
-    procWalk:true, wagAxis:'y', tailLift:50, wagBones:['tail','tailstart','tail1'], fur:{normal:0.35,sheen:0.6,sheenColor:0x6b6560}, poses:'meshy2',
+    procWalk:true, wagAxis:'y', tailLift:50, wagBones:['tail','tailstart','tail1'], fur:{normal:0.35,sheen:0.6,sheenColor:0x6b6560}, poses:'meshy2', wearOff:{up:0.10,fwd:-0.05},
     bones:{ Hips:'root', chest:'chest', head:'head',
       tail:'tail2', tailstart:'tail3', tail1:'tail4', tail2:'tail_04',
       frontleg:'frontUprL', frontleg0:'frontLwrL', frontleg1:'frontHorselinkL', frontleg2:'frontFootL',

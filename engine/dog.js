@@ -88,7 +88,7 @@ export class Dog {
     for(const logical in DOG.bones){ const b=byName[DOG.bones[logical]]; if(b) this.bones[logical]=b; }
     if(!this.bones.Hips||!this.bones.chest) throw new Error('Knochen "Hips"/"chest" nicht gefunden – content/dog.js prüfen');
     for(const b of this.allBones) this.bind[b.uuid]={q:b.quaternion.clone(), p:b.position.clone()};
-    this.head=this.bones.head; this.mouth=this.bones.mouth||this.bones.head;
+    this.wearOff=DOG.wearOff; this.head=this.bones.head; this.mouth=this.bones.mouth||this.bones.head;
     if(!this.bones.mouth && DOG.procWalk){ // keine Schnauzen-Knochen: Anker an die Nasenspitze setzen
       model.updateMatrixWorld(true); skinned.geometry.computeBoundingBox(); const bb=skinned.geometry.boundingBox.clone().applyMatrix4(skinned.matrixWorld);
       const hp=this.head.getWorldPosition(new THREE.Vector3()); const a=new THREE.Object3D(); this.head.add(a);

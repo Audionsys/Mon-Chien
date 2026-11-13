@@ -62,7 +62,7 @@ function placeWorn(dog, slot, obj){
   const up=new THREE.Vector3(0,1,0).applyQuaternion(q), fwd=mp.clone().sub(hp).setY(0).normalize();
   let s=dog.H/0.62;
   let pos, look;
-  if(slot==='head'){ pos=hp.clone().addScaledVector(up,0.085*s).addScaledVector(fwd,-0.01*s); }
+  const WO=dog.wearOff||{}; if(slot==='head'){ pos=hp.clone().addScaledVector(up,(WO.up??0.085)*s).addScaledVector(fwd,(WO.fwd??-0.01)*s); }
   else if(slot==='eyes'){ pos=hp.clone().lerp(mp,0.5).addScaledVector(up,0.04*s); s*=1.25; }
   else { pos=hp.clone().lerp(cp,0.38).addScaledVector(up,-0.01*s); }
   obj.position.copy(pos); obj.scale.setScalar(s);
