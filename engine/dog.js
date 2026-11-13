@@ -80,13 +80,19 @@ export class Dog {
     const model=gltf.scene; this.inner.add(model); let skinned;
     model.traverse(o=>{ if(o.isMesh){ o.castShadow=true; o.frustumCulled=false; skinned=o; const m=o.material; if(m){ m.metalness=0; m.roughness=Math.max(0.65,m.roughness??0.8); m.envMapIntensity=1.2;
         // Meshy-Modelle sind „doppelseitig“: Vorder- und Rückseite liegen aufeinander und kämpfen um die Tiefe → Flimmern. Nur Vorderseite zeichnen.
-        m.side=THREE.FrontSide; m.shadowSide=THREE.FrontSide; m.transparent=false; m.depthWrite=true; m.needsUpdate=true; } }
+        m.side=THREE.FrontSide; m.shadowSide=THREE.FrontSide; m.transparent=false; m.depthWrite=true; m.needsUpdate=true;
+          if(DOG.fur){ const F=DOG.fur, pm=new THREE.MeshPhysicalMaterial(); THREE.MeshStandardMaterial.prototype.copy.call(pm,m); pm.metalnessMap=null; pm.roughnessMap=null; pm.metalness=0; pm.roughness=0.9;
+            if(pm.normalMap) pm.normalScale.setScalar(F.normal??0.4); pm.sheen=F.sheen??0.5; pm.sheenColor=new THREE.Color(F.sheenColor??0x777777); pm.sheenRoughness=0.55; o.material=pm; } } }
       if(o.isBone) this.allBones.push(o); });
     const byName={}; this.allBones.forEach(b=>byName[b.name]=b);
     for(const logical in DOG.bones){ const b=byName[DOG.bones[logical]]; if(b) this.bones[logical]=b; }
     if(!this.bones.Hips||!this.bones.chest) throw new Error('Knochen "Hips"/"chest" nicht gefunden – content/dog.js prüfen');
     for(const b of this.allBones) this.bind[b.uuid]={q:b.quaternion.clone(), p:b.position.clone()};
     this.head=this.bones.head; this.mouth=this.bones.mouth||this.bones.head;
+    if(!this.bones.mouth && DOG.procWalk){ // keine Schnauzen-Knochen: Anker an die Nasenspitze setzen
+      model.updateMatrixWorld(true); skinned.geometry.computeBoundingBox(); const bb=skinned.geometry.boundingBox.clone().applyMatrix4(skinned.matrixWorld);
+      const hp=this.head.getWorldPosition(new THREE.Vector3()); const a=new THREE.Object3D(); this.head.add(a);
+      const tip=new THREE.Vector3(hp.x, hp.y-(bb.max.y-bb.min.y)*0.06, bb.max.z-(bb.max.z-bb.min.z)*0.05); a.position.copy(this.head.worldToLocal(tip)); this.mouth=a; }
     model.updateMatrixWorld(true);
     const hp=this.bones.Hips.getWorldPosition(new THREE.Vector3()), cp=this.bones.chest.getWorldPosition(new THREE.Vector3());
     const f=cp.sub(hp); this.inner.rotation.y=-Math.atan2(f.x,f.z); this.inner.updateMatrixWorld(true);
@@ -96,10 +102,31 @@ export class Dog {
     box=skinned.boundingBox.clone().applyMatrix4(skinned.matrixWorld);
     this.inner.position.set(-(box.min.x+box.max.x)/2,-box.min.y,-(box.min.z+box.max.z)/2);
     this.mixer=new THREE.AnimationMixer(model);
-    const clip=(typeof DOG.walkClip==='string'? gltf.animations.find(a=>a.name.includes(DOG.walkClip)) : gltf.animations[DOG.walkClip]) || gltf.animations[0]; this.walk=this.mixer.clipAction(clip); this.walk.play(); this.walk.weight=0;
-    this._measureStride(clip, model); this._setupStand(clip); this._centerPivot();
+    const clip=DOG.procWalk? this._makeWalkClip(model) : ((typeof DOG.walkClip==='string'? gltf.animations.find(a=>a.name.includes(DOG.walkClip)) : gltf.animations[DOG.walkClip]) || gltf.animations[0]); this.walk=this.mixer.clipAction(clip); this.walk.play(); this.walk.weight=0;
+    this._measureStride(clip, model); if(!DOG.procWalk) this._setupStand(clip); this._centerPivot();
     const s=this.room.start; this.root.position.set(s.pos[0],0,s.pos[1]); this.yaw=s.yaw; this.root.rotation.y=this.yaw;
   }
+  // Laufzyklus aus Code (für Hunde ohne brauchbare Meshy-Laufanimation): Achsen wie bei den Posen (x quer, y hoch, z längs)
+  _makeWalkClip(model){
+    const B=this.bones, D=1/1.4, N=24, lerp2=(a,b,t)=>a+(b-a)*t, ss=x=>x*x*(3-2*x);
+    const leg=p=>{ const st=0.62; if(p<st) return {sw:lerp2(-1,1,p/st),lift:0}; const q=(p-st)/(1-st); return {sw:lerp2(1,-1,ss(q)),lift:Math.sin(Math.PI*q)}; };
+    const used=[...new Set(ORDER.map(k=>B[k]).filter(Boolean))]; const tracks={}; used.forEach(b=>tracks[b.uuid]={q:[],p:[]}); const times=[];
+    const rootB=B.Hips, y0=rootB.position.y, s=this.H/0.62;
+    model.updateMatrixWorld(true);
+    for(let i=0;i<=N;i++){ const ph=i/N; times.push(ph*D);
+      for(const b of this.allBones){ const r=this.bind[b.uuid]; b.quaternion.copy(r.q); b.position.copy(r.p); }
+      const R=(k,deg,ax='x')=>{ const b=B[k]; if(b) this._addRot(b,ax,deg); };
+      const sw=Math.sin(ph*2*Math.PI);
+      R('chest',-sw*2,'y'); R('head',-sw*2,'y');
+      for(const [p,o] of [['',0],['R_',0.5]]){ const h=leg(((ph+o)%1+1)%1), f=leg(((ph+o+0.25)%1+1)%1);
+        R(p+'backleg',h.sw*17); R(p+'backleg0',h.lift*38); R(p+'backleg1',-h.lift*52); R(p+'backleg2',h.lift*28);
+        R(p+'frontleg',f.sw*15); R(p+'frontleg0',-f.lift*12); R(p+'frontleg1',f.lift*62); R(p+'frontleg2',f.lift*30); }
+      R('tailstart',sw*10,DOG.wagAxis||'y');
+      for(const b of used){ tracks[b.uuid].q.push(...b.quaternion.toArray()); tracks[b.uuid].p.push(...b.position.toArray()); }
+      tracks[rootB.uuid].p.splice(-3,3, rootB.position.x, rootB.position.y+Math.sin(ph*4*Math.PI)*0.004*s, rootB.position.z); }
+    const kt=[]; for(const b of used){ kt.push(new THREE.QuaternionKeyframeTrack(b.name+'.quaternion',times,tracks[b.uuid].q)); if(b===rootB) kt.push(new THREE.VectorKeyframeTrack(b.name+'.position',times,tracks[b.uuid].p)); }
+    for(const b of this.allBones){ const r=this.bind[b.uuid]; b.quaternion.copy(r.q); b.position.copy(r.p); }
+    return new THREE.AnimationClip('procWalk',D,kt); }
   _measureStride(clip, model){
     const foot=this.bones.frontleg2||this.bones.R_frontleg2; if(!foot) return;
     this.walk.weight=1; const N=60, dur=clip.duration, zs=[], inv=new THREE.Matrix4();
@@ -338,11 +365,12 @@ export class Dog {
     this.trick.getWorldQuaternion(_qd); wp.add(vec.applyQuaternion(_qd)); bone.parent.worldToLocal(wp); bone.position.copy(wp); }
   _procedural(){
     const acc={}, tr={}; const A=b=>(acc[b]??={x:0,y:0,z:0});
-    for(const p in POSES){ const w=this.W[p]*(DOG.tune[p]??1); if(Math.abs(w)<0.001) continue; const P=POSES[p];
+    for(const p in POSES){ const w=this.W[p]*(DOG.tune[p]??1); if(Math.abs(w)<0.001) continue; const P=(DOG.poses&&DOG.poses[p])||POSES[p];
       for(const b in (P.rot||{})) for(const [ax,deg] of P.rot[b]) A(b)[ax]+=deg*w;
       for(const b in (P.trans||{})){ const v=P.trans[b]; (tr[b]??=new THREE.Vector3()).add(new THREE.Vector3(...v).multiplyScalar(w*this.H)); } }
     const wag=Math.sin(this.T*this.wagSpeed)*this.wagAmt*28;
-    for(const b of ['tailstart','tail1','tail2']) A(b).y+=wag*(b==='tailstart'?0.6:1);
+    const wa=DOG.wagAxis||'y'; for(const b of (DOG.wagBones||['tailstart','tail1','tail2'])) A(b)[wa]+=wag*(b==='tailstart'?0.6:1);
+    if(DOG.tailLift) A('tail').x+=DOG.tailLift*Math.min(1,this.wagAmt);
     A('chest').x+=Math.sin(this.T*2.2)*1.2*(1-this.walkW);
     A('head').y+=this.lookYaw; A('head').x+=this.lookPitch;
     if(this.shake) A('head').y+=Math.sin(this.T*26)*28;
