@@ -116,6 +116,24 @@ export const WORLD = {
       ],
       start:{ pos:[0,0.4], yaw:0 },
       betises:['sausage','flour','tail'] },
+
+    // ---- Abenteuer (Prototyp, 2,5D): gemalte Kulisse + 2D-Figuren, 3D-Hund läuft davor ----
+    { id:'boucherie', x:40, fr:'la boucherie', de:'die Metzgerei',
+      room:{ w:8, d:4.4, floor:'tiles', backdrop:{ img:'adv/backdrop.jpg', w:10, h:5, regions:[
+        {x:[-1.2,1.2], y:[4.3,4.9], fr:'la boucherie', de:'die Metzgerei'},
+        {x:[-2.2,1.4], y:[2.3,3.3], fr:'les saucisses', de:'die Würste'},
+        {x:[1.6,2.65], y:[2.65,3.75], fr:'les prix', de:'die Preise'},
+        {x:[2.3,3.6], y:[0,2.3], fr:'la porte de derrière', de:'die Hintertür'},
+        {x:[-3.1,-2.3], y:[0,2.2], fr:"l'entrée", de:'der Eingang'},
+        {x:[-4.8,-3.3], y:[1.0,2.6], fr:'la vitrine', de:'das Schaufenster'},
+        {x:[-4.3,-3.7], y:[3.0,3.6], fr:"l'horloge", de:'die Uhr'} ] } },
+      props:[
+        { id:'boucher', type:'npc', img:'adv/boucher.webp', h:1.85, w:0.82, pos:[-0.2,-1.95], word:{fr:'le boucher', de:'der Metzger'}, spot:[-0.2,-0.6] },
+        { id:'comptoir', type:'cutout', img:'adv/comptoir.webp', h:1.1, w:3.8, pos:[-0.4,-1.55], word:{fr:'le comptoir', de:'die Theke'}, block:[3.8,0.5], spot:[-0.4,-0.6] },
+        { id:'cliente', type:'npc', img:'adv/cliente.webp', h:1.6, w:0.74, pos:[-2.6,-1.1], word:{fr:'la cliente', de:'die Kundin'}, block:[0.6,0.4], spot:[-1.9,-0.6] },
+        { id:'livreur', type:'npc', img:'adv/livreur.webp', h:1.8, w:0.8, pos:[3.05,-2.0], word:{fr:'le livreur', de:'der Lieferant'}, spot:[2.4,-0.9] },
+      ],
+      start:{ pos:[-2.6,0.9], yaw:0.4 } },
   ],
   doors:[
     { a:'classe', b:'rue',    x:-21.0, z:1.2, w:1.15 },

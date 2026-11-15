@@ -21,6 +21,7 @@ import * as UI from './ui.js';
 import * as Coco from './coco.js';
 import { track, checkBadges, BADGES, progressOf, weekReport } from './badges.js';
 import { DOGS, DOG, chooseDog } from '../content/dog.js';
+import { createAdventure } from './mission.js';
 const { $, N, esc } = UI;
 
 UI.setNameFn(()=>P.name||'Filou'); UI.setNamedFn(()=>!!P.name); UI.setFemFn(()=>P.gender==='f');
@@ -35,7 +36,7 @@ A.preloadMusic('music.mp3');
 function headScreen(){ const p=dog.headWorld(); p.y+=0.22; p.project(world.camera); return {x:(p.x*0.5+0.5)*innerWidth, y:(-p.y*0.5+0.5)*innerHeight}; }
 const fx={ hearts(n=3){ const s=headScreen(); UI.floatFx(s.x,s.y,['❤️','💛','✨','🧡'],n); } };
 dog.on('say',(t,ms)=>UI.dogSay(t,ms)); dog.on('hearts',n=>fx.hearts(n));
-export const VERSION='54';
+export const VERSION='55';
 try{ document.getElementById('ver').textContent='v'+VERSION; }catch(e){}
 function toast(html,ms=2600){ const t=$('toast'); t.innerHTML=N(html); t.classList.add('on'); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('on'),ms); }
 
@@ -54,6 +55,10 @@ function screenOf(id){ const p=room.props.get(id); if(!p||!p.object) return null
 g.cocoPoint=(id)=>{ const s=screenOf(id); if(s) Coco.pointAt(s.x,s.y); };
 g.celebrate=()=>Coco.celebrate(); g.openDogs=openDogs;
 const run=new Runner(g);
+// ---------- Abenteuer (Prototyp) ----------
+function giveSausage(){ const m=new THREE.Mesh(new THREE.CapsuleGeometry(0.035,0.16,4,10),new THREE.MeshStandardMaterial({color:'#a5473f',roughness:0.6})); m.rotation.z=Math.PI/2;
+  const grp=new THREE.Group(); grp.add(m); dog.mouth.add(grp); grp.position.set(0,-0.03,0.02); setTimeout(()=>{ dog.mouth.remove(grp); m.geometry.dispose(); dog.eat?.(); },2200); }
+const ADV=createAdventure({ room:()=>room, dog, fx, toast:(h,ms)=>toast(h,ms), celebrate:()=>g.celebrate(), love:(k)=>love?.(k), switchTo:(id)=>{ switchScene(id); camT.x=dog.root.position.x; camT.z=0; }, resume:()=>{ run.begin(); }, giveSausage });
 
 // ---------- Freundschaft: Sympathie-Herzen & Kunststücke ----------
 P.hearts ??= 0; P.tricks ??= {};
@@ -99,9 +104,9 @@ function openWeek(){ const W=weekReport(); const max=Math.max(1,...W.dayN);
     <h3>🔁 Wackelt noch (öfter geübt, noch nicht sicher)</h3>${W.shaky.length?W.shaky.map(i=>`<div class="entry"><div class="x"><div class="f">${esc(N(i.fr||''))}</div><div class="d">${esc(N(i.de||''))} · ${i.seen}× geübt</div></div></div>`).join(''):'<p class="sub">Nichts – super! 🎉</p>'}
     <h3>🏆 Neue Abzeichen</h3><p>${W.badges.length?W.badges.map(b=>`${b.pic} ${esc(b.fr)}`).join(' · '):'<span class="sub">Keine diese Woche.</span>'}</p>`); }
 dog.on('kiss',()=>{ fx.hearts(16); A.sfx.pop(); A.sfx.applause?.(); const k=document.createElement('div'); k.className='kiss'; k.textContent='💋'; document.body.appendChild(k); setTimeout(()=>k.remove(),1600); });
-{ const _do=dog.do.bind(dog); dog.do=(a,ctx)=>{ if(a&&a.do==='trick'&&!P.tricks[a.id]&&!testMode){ const t=TRICKS.find(x=>x.id===a.id); dog.tilt();
+{ const _do=dog.do.bind(dog); dog.doRaw=_do; dog.do=(a,ctx)=>{ if(a&&a.do==='trick'&&!P.tricks[a.id]&&!testMode){ const t=TRICKS.find(x=>x.id===a.id); dog.tilt();
       toast(`🦜 Das kann {N} noch nicht! Bei <b>${t.need} ❤️</b> zeigt er es dir – noch ${t.need-P.hearts} Herzen. Tipp oben auf ❤️.`,4200); return; } return _do(a,ctx); }; }
-function trickSurprise(t){ if(P.tricks[t.id]) return; if(MIS.active||UI.sheetIsOpen()||pendingGive||cocoSaved||$('giftBox').classList.contains('open')){ setTimeout(()=>trickSurprise(t),4000); return; }
+function trickSurprise(t){ if(P.tricks[t.id]) return; if(MIS.active||ADV.active||UI.sheetIsOpen()||pendingGive||cocoSaved||$('giftBox').classList.contains('open')){ setTimeout(()=>trickSurprise(t),4000); return; }
   P.tricks[t.id]=1; save(); const c=COMMANDS[t.id]; interruptCoco();
   UI.coco(`<span class="tutostep">❤️ ${t.need} Herzen!</span>${UI.frLine("{N} a une surprise pour toi !")}${UI.deLine('{N} hat dich so lieb, dass er dir ein Kunststück zeigt. Schau mal!')}`); A.say(N("{N} a une surprise pour toi !"));
   setTimeout(()=>dog.do({do:'trick',id:t.id}),1800);
@@ -223,7 +228,7 @@ dog.on('particles',(k,pos)=>particles.spawn(k,pos));
 // ---------- Quatsch-System ----------
 const MIS={ active:null, saved:null, lastInput:performance.now(), next:45000+Math.random()*20000 };
 function bump(){ MIS.lastInput=performance.now(); }
-function canMischief(){ return started && !!P.name && P.chapter>0 && !MIS.active && !pendingGive && !cocoSaved && !$('sheet').classList.contains('open') && run.step && run.step.type!=='name' && document.activeElement!==inp; }
+function canMischief(){ return started && !ADV.active && !!P.name && P.chapter>0 && !MIS.active && !pendingGive && !cocoSaved && !$('sheet').classList.contains('open') && run.step && run.step.type!=='name' && document.activeElement!==inp; }
 function startMischief(kind){ Coco.laugh(3000);
   const list=roomDef(dogRoom())?.betises||[]; kind=kind||list[Math.floor(Math.random()*list.length)]; const B=BETISES[kind]; if(!B) return;
   if(!dog.mischief(kind)) return;
@@ -273,15 +278,16 @@ function quip(when, force){
 }
 g.quip=quip;
 setInterval(()=>{ if(!started||MIS.active) return; const idle=performance.now()-MIS.lastInput; if(idle>14000 && Math.random()<0.35) quip('idle'); },9000);
-g.busy=()=>!!MIS.active;
+g.busy=()=>!!MIS.active||ADV.active;
 
 // ---------- Eingabe ----------
 const inp=$('inp');
 function submit(){ const raw=inp.value.trim(); if(!raw) return; inp.value=''; A.audioCtx(); A.sfx.tap(); bump(); if(MIS.active) return mischiefInput(raw);
   if(pendingGive && /^(tiens|tenez|voila|voici|c est pour toi|pour toi|mange)/.test(raw.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/'/g,' '))){ feed(); return; }
+  if(ADV.active){ if(!ADV.input(raw)) g.freeCommand(raw); return; }
   if(tryToyFetch(raw)) return; run.input(raw); }
 $('send').onclick=submit;
-$('helpBtn').onclick=()=>{ A.audioCtx(); A.sfx.tap(); bump(); if(run.step?.type==='tuto'){ run.event('help'); return; } if(MIS.active){ misHint(); return; }
+$('helpBtn').onclick=()=>{ A.audioCtx(); A.sfx.tap(); bump(); if(run.step?.type==='tuto'){ run.event('help'); return; } if(ADV.active){ ADV.help(); return; } if(MIS.active){ misHint(); return; }
   if(pendingGive){ toast('Sag <b class="fr">Tiens !</b> oder tippe auf den Hund 🐶'); return; }
   const r=run.helpNow(); const st=run.step;
   if(r==='joker'){ toast('In der Hundeshow gibt es nur den 🃏 Joker – den findest du unten.'); return; }
@@ -340,7 +346,7 @@ $('c').addEventListener('pointerup',e=>{
   if(hit.prop){ const p=hit.prop; const w=hit.part||p.word;
     // begehbare Flächen (Teppich, Straße, Zebrastreifen …): Wort sagen UND hinlaufen; Doppeltipp = rennen, Wort nicht nochmal
     const ground= GROUND.has(p.type) || (hit.point && hit.point.y<0.06);
-    if(!(dbl&&ground)){ A.sfx.pop(); UI.wordLabel(e.clientX,e.clientY-10,w.fr,w.de); A.say(w.fr,{word:true}); collectWord(w); run.event('prop'); if(!MIS.active && run.prop(p)) return; }
+    if(!(dbl&&ground)){ A.sfx.pop(); UI.wordLabel(e.clientX,e.clientY-10,w.fr,w.de); A.say(w.fr,{word:true}); collectWord(w); if(ADV.active){ if(ADV.prop(p)) return; } else { run.event('prop'); if(!MIS.active && run.prop(p)) return; } }
     if(ground && hit.point && !MIS.active) dog.walkTo(hit.point.x,hit.point.z,null,{run:dbl});
     return; }
   if(hit.floor){ dog.walkTo(hit.floor.x,hit.floor.z,null,{run:dbl}); run.event('floor'); }
@@ -434,7 +440,7 @@ function openDecks(){
 }
 function openMenu(){
   let h=testMode?`<p class="sub" style="background:#fff1c9;border-radius:10px;padding:6px 9px">🧪 <b>Testmodus aktiv</b> – alle Kapitel offen. Vor dem Zug ausschalten!</p>`:'';
-  h+=`<div class="menutiles"><button id="chapBtnM"><span>🗺️</span><b>Kapitel</b><small>Lernreise & Kapitel wählen</small></button><button id="deckBtnM"><span>📚</span><b>Vokabeln</b><small>mit {N} üben</small></button><button id="badgeBtnM"><span>🏆</span><b>Abzeichen</b><small>${BADGES.filter(b=>(P.badges||{})[b.id]).length}/${BADGES.length}</small></button></div><div class="menutiles two"><button id="carnetBtnM"><span>📖</span><b>Carnet</b><small>Mein Vokabelheft</small></button><button id="shopBtnM"><span>🦴</span><b>Schatzkiste</b><small>${P.treats} Knochen</small></button><button id="zoomBtnM"><span>Aa</span><b>Textgröße</b><small>größer / kleiner</small></button></div>`;
+  h+=`<div class="menutiles"><button id="chapBtnM"><span>🗺️</span><b>Kapitel</b><small>Lernreise & Kapitel wählen</small></button><button id="deckBtnM"><span>📚</span><b>Vokabeln</b><small>mit {N} üben</small></button><button id="badgeBtnM"><span>🏆</span><b>Abzeichen</b><small>${BADGES.filter(b=>(P.badges||{})[b.id]).length}/${BADGES.length}</small></button></div><div class="menutiles two"><button id="carnetBtnM"><span>📖</span><b>Carnet</b><small>Mein Vokabelheft</small></button><button id="shopBtnM"><span>🦴</span><b>Schatzkiste</b><small>${P.treats} Knochen</small></button><button id="zoomBtnM"><span>Aa</span><b>Textgröße</b><small>größer / kleiner</small></button></div><div class="menutiles two"><button id="advBtnM"><span>🥩</span><b>Abenteuer</b><small>Prototyp: La boucherie</small></button></div>`;
   h=N(h);
   h+=`<h3>Einstellungen</h3>
     <label class="set">🎵 Musik <input type="checkbox" id="setMusic" ${A.settings.music?'checked':''}></label>
@@ -464,7 +470,7 @@ function openMenu(){
     ${testMode?`<button class="row" id="tJump"><b>🧪 Zu Aufgabe springen</b><small>Aktuelles Kapitel</small></button><button class="row" id="tMis"><b>🧪 Quatsch auslösen</b><small>Hund macht sofort Unsinn</small></button><button class="row" id="tDefi"><b>🧪 Hundeshow starten</b><small>Mini-Test dieses Kapitels</small></button>`:''}
     <button class="row" id="resetBtn"><b>🗑️ Spielstand löschen</b><small>Neuer Hund, alles von vorn</small></button>`;
   UI.openSheet('☰ Menü', h, {onOpen:b=>{
-    b.querySelector('#chapBtnM').onclick=openChapters; b.querySelector('#deckBtnM').onclick=openDecks; b.querySelector('#badgeBtnM').onclick=()=>openBadges(); b.querySelector('#carnetBtnM').onclick=()=>{ openCarnet(); run.event('carnet'); }; b.querySelector('#shopBtnM').onclick=()=>openShop('coffre'); b.querySelector('#zoomBtnM').onclick=()=>$('zoomBtn').click();
+    b.querySelector('#chapBtnM').onclick=openChapters; b.querySelector('#deckBtnM').onclick=openDecks; b.querySelector('#badgeBtnM').onclick=()=>openBadges(); b.querySelector('#carnetBtnM').onclick=()=>{ openCarnet(); run.event('carnet'); }; b.querySelector('#shopBtnM').onclick=()=>openShop('coffre'); b.querySelector('#zoomBtnM').onclick=()=>$('zoomBtn').click(); b.querySelector('#advBtnM').onclick=()=>{ UI.closeSheet(); setTimeout(()=>ADV.start(),250); };
     b.querySelector('#setMusic').onchange=e=>{ A.audioCtx(); if(e.target.checked!==A.settings.music){ $('musicBtn').textContent=A.toggleMusic()?'🎵':'🔇'; } };
     b.querySelectorAll('[data-z]').forEach(x=>x.onclick=()=>{ uiz=ZOOMS[+x.dataset.z]; applyZoom(); openMenu(); });
     const fb=b.querySelector('#fsBtn'); if(fb) fb.onclick=()=>{ UI.closeSheet(); if(IOS) iosHint(true); else goFullscreen(); };
@@ -623,7 +629,7 @@ setInterval(resize,1500);
 let last=performance.now();
 function frame(now){
   requestAnimationFrame(frame); const dt=Math.min(0.05,(now-last)/1000); last=now;
-  dog.update(dt); dog.ground?.(dt); particles.update(dt);
+  dog.update(dt); dog.ground?.(dt); particles.update(dt); ADV.update(dt,world.camera);
   const asp=innerWidth/innerHeight, portrait=asp<0.8, dist=portrait?3.4:3.8, dp=dog.root.position;
   camT.x=THREE.MathUtils.lerp(camT.x,dp.x,dt*1.8);
   camT.z=THREE.MathUtils.lerp(camT.z,THREE.MathUtils.clamp(dp.z*(portrait?0.7:0.45),-1.2,1),dt*1.8);
@@ -631,6 +637,9 @@ function frame(now){
   // Schattenbereich nur ab und zu nachziehen (in festen Schritten) – ständiges Mitwandern lässt die Schatten flimmern
   if(!window.__sunC || Math.hypot(dp.x-__sunC.x,dp.z-__sunC.z)>1.4){ window.__sunC={x:Math.round(dp.x*2)/2, z:Math.round(dp.z*2)/2};
     world.sun.position.set(__sunC.x-2.5,4.5,__sunC.z-1.5); world.sun.target.position.set(__sunC.x,0,__sunC.z); world.sun.target.updateMatrixWorld(); }
+  { const fov=ADV.active?(asp<0.8?60:42):38; if(cam.fov!==fov){ cam.fov=fov; cam.updateProjectionMatrix(); } }
+  if(ADV.active){ const D=8.2, hw=D*Math.tan(THREE.MathUtils.degToRad(cam.fov/2))*asp, cx0=room.rooms.find(r=>r.id==='boucherie').x, lim=Math.max(0,5-hw);
+    const x=THREE.MathUtils.clamp(camT.x,cx0-lim,cx0+lim); cam.position.set(x, 2.0, 6.0); cam.lookAt(x, 1.15, -2.2); }
   if(titleCam){ const t=performance.now()/1000, por=innerWidth<innerHeight, r=por?2.3:1.9, a=Math.sin(t*0.25)*0.55; const dp2=dog.root.position; cam.position.set(dp2.x+Math.sin(a)*r, 0.75, dp2.z+Math.cos(a)*r); cam.lookAt(dp2.x, por?0.62:0.5, dp2.z); }
   // Hund in die freie Lücke zwischen Sprechblase und Knöpfen rücken
   if(!titleCam && started){ freeT-=dt; if(freeT<=0){ freeT=0.25; const W=innerWidth,H=innerHeight; const cb=$('coco').getBoundingClientRect(), bb=$('bottom').getBoundingClientRect(); const land=W>H && H<520;
@@ -657,9 +666,9 @@ dog.load(p=>{ $('loadBar').style.width=(p*100)+'%'; }).then(()=>{
   if(P.name){ st.textContent=N('Weiter mit {N} 🐾'); document.querySelector('#load .cocoSays').textContent=N('Coucou ! {N} t\'attend !'); }
   st.onclick=()=>{ guardHistory(); goFullscreen(); document.body.classList.remove('title'); titleCam=false; dog.setPose(0,0); dog.wagAmt=0.25; dog.wagSpeed=7; const s0=room.start; dog.root.position.set(s0.pos[0],0,s0.pos[1]); dog.yaw=s0.yaw; started=true; bump(); A.audioCtx(); A.startMusic(); A.sfx.pop(); $('load').style.opacity=0; setTimeout(()=>$('load').remove(),500); run.start(); if(P.name && !P.gender) setTimeout(()=>askGender(),1500);
     setTimeout(badgeCheck,15000);
-    setTimeout(function wishHint(){ if(!P.name) return; const w=todayWish(); if(w.told||w.done) return; if(UI.sheetIsOpen()||cocoSaved){ setTimeout(wishHint,5000); return; } w.told=1; save(); toast(`🌟 <b class="fr">Aujourd'hui, {N} adore ${LIKES[w.kind].fr} !</b><br>Heute wünscht sich {N}: ${LIKES[w.kind].de} → +5 ❤️ <small>(tippe oben auf ❤️)</small>`,6000); }, 9000);
+    setTimeout(function wishHint(){ if(!P.name) return; const w=todayWish(); if(w.told||w.done) return; if(UI.sheetIsOpen()||cocoSaved||ADV.active){ setTimeout(wishHint,5000); return; } w.told=1; save(); toast(`🌟 <b class="fr">Aujourd'hui, {N} adore ${LIKES[w.kind].fr} !</b><br>Heute wünscht sich {N}: ${LIKES[w.kind].de} → +5 ❤️ <small>(tippe oben auf ❤️)</small>`,6000); }, 9000);
      };
   rewear();
   g.openMap=openMap;
-  window.__dbg={openMap,dog,run,P,gift:g.gift,openShop,give,buy,get room(){return room},world,submit,inp,startMischief,switchScene,MIS};
+  window.__dbg={ADV,openMap,dog,run,P,gift:g.gift,openShop,give,buy,get room(){return room},world,submit,inp,startMischief,switchScene,MIS};
 }).catch(err=>{ document.querySelector('#load p').textContent='Der Hund konnte nicht geladen werden 😢 ('+err.message+')'; });

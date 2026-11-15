@@ -519,6 +519,15 @@ export function buildWorld(world, W){
     r.minX=rx-r.w/2; r.maxX=rx+r.w/2; r.minZ=rz-r.d/2; r.maxZ=rz+r.d/2; rooms.push(r);
     const fl=new THREE.Mesh(new THREE.PlaneGeometry(r.w,r.d),new THREE.MeshStandardMaterial({map:floorTexOf(R.room.floor),roughness:0.85}));
     fl.rotation.x=-Math.PI/2; fl.position.set(rx,0.001,rz); fl.receiveShadow=true; fl.userData.floor=true; root.add(fl); floors.push(fl);
+    if(R.room.backdrop){ r.outdoor=true; const B=R.room.backdrop; const tex=new THREE.TextureLoader().load(B.img); tex.colorSpace=THREE.SRGBColorSpace; tex.anisotropy=4;
+      const bw=B.w||r.w+2, bh=B.h||bw/2; const bd=new THREE.Mesh(new THREE.PlaneGeometry(bw,bh),new THREE.MeshBasicMaterial({map:tex,toneMapped:false}));
+      bd.position.set(rx,bh/2,r.minZ); root.add(bd);
+      for(const k of [-1,1]){ const top=new THREE.Mesh(new THREE.PlaneGeometry(8,bh),new THREE.MeshBasicMaterial({color:B.wall||'#f0e3c8',toneMapped:false})); top.position.set(rx+k*(bw/2+4),bh/2,r.minZ-0.01); root.add(top);
+        const low=new THREE.Mesh(new THREE.PlaneGeometry(8,1.5),new THREE.MeshBasicMaterial({color:B.low||'#f2f5f3',toneMapped:false})); low.position.set(rx+k*(bw/2+4),0.75,r.minZ-0.005); root.add(low);
+        const st=new THREE.Mesh(new THREE.PlaneGeometry(8,0.07),new THREE.MeshBasicMaterial({color:'#3f8f72',toneMapped:false})); st.position.set(rx+k*(bw/2+4),1.53,r.minZ-0.004); root.add(st); } bd.userData.propId='decor_'+R.id; pickables.push(bd);
+      bd.userData.region=(u,v)=>{ const x=(u-0.5)*bw, y=v*bh; const g=(B.regions||[]).find(q=>x>=q.x[0]&&x<=q.x[1]&&y>=q.y[0]&&y<=q.y[1]); return g? {fr:g.fr,de:g.de}:null; };
+      props.set('decor_'+R.id,{id:'decor_'+R.id,type:'backdrop',room:R.id,pos:[rx,r.minZ],word:{fr:R.fr,de:R.de},object:bd});
+      const apron=new THREE.Mesh(new THREE.PlaneGeometry(bw+16,8),new THREE.MeshStandardMaterial({map:floorTexOf(R.room.floor),roughness:0.85})); apron.rotation.x=-Math.PI/2; apron.position.set(rx,-0.005,rz+0.5); apron.receiveShadow=true; root.add(apron); }
     if(!r.outdoor){
       const wallTex=canvasTex(256,256,(g,w,h)=>{ g.fillStyle=R.room.wall; g.fillRect(0,0,w,h); g.fillStyle='rgba(255,255,255,.35)'; for(let x=0;x<w;x+=32) g.fillRect(x,0,12,h); },[r.w,1]);
       const wm=new THREE.MeshStandardMaterial({map:wallTex,roughness:0.95});
@@ -530,6 +539,13 @@ export function buildWorld(world, W){
     }
     // Gegenstände (Koordinaten relativ zur Raummitte)
     for(const p of (R.props||[])){
+      if(p.type==='cutout'||p.type==='npc'){ // 2D-Figur/Kulisse als aufrechte Bildebene (2,5D)
+        const tex=new THREE.TextureLoader().load(p.img); tex.colorSpace=THREE.SRGBColorSpace; tex.anisotropy=4;
+        const geo=new THREE.PlaneGeometry(1,1); geo.translate(0,0.5,0); const m=new THREE.Mesh(geo,new THREE.MeshBasicMaterial({map:tex,alphaTest:0.5,toneMapped:false,side:THREE.DoubleSide}));
+        const w=p.w||p.h*0.45; m.scale.set(w,p.h,1); const grp=new THREE.Group(); grp.add(m); const gx=rx+p.pos[0], gz=rz+p.pos[1]; grp.position.set(gx,p.y||0,gz); root.add(grp);
+        m.userData.propId=p.id; pickables.push(m); grp.userData.npc=p.type==='npc'; grp.userData.body=m; grp.userData.base={w,h:p.h};
+        const e={...p, room:R.id, pos:[gx,gz], spot:p.spot?[rx+p.spot[0],rz+p.spot[1]]:null, object:grp, home:grp.position.clone()};
+        if(p.block) obstacles.push({x:gx+(p.blockOff||0),z:gz,w:p.block[0],d:p.block[1]}); props.set(p.id,e); continue; }
       if(!BUILD[p.type]) continue;
       const obj=BUILD[p.type](); const gx=rx+p.pos[0], gz=rz+p.pos[1]; obj.position.set(gx,p.y||0,gz); if(p.rot) obj.rotation.y=p.rot; if(p.scale) obj.scale.setScalar(p.scale); root.add(obj); if(REAL[p.type]) realize(obj,REAL[p.type]);
       obj.traverse(m=>{ if(m.isMesh){ m.userData.propId=p.id; pickables.push(m); } });
