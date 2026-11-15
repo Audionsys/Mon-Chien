@@ -47,7 +47,7 @@ export class Runner {
     if(P.chapter>=COURSE.chapters.length){ this.freePlay(); return; }
     this.begin();
   }
-  begin(){ UI.thinkHide(); this.wrong=0; this.solved=false; const st=this.step; if(!st) return this.chapterDone(); this.hintBase=(help.de&&st.de)?1:0; this.hint=this.hintBase;
+  begin(){ UI.thinkHide(); this.wrong=0; this.solved=false; const st=this.step; if(!st) return this.chapterDone(); this.hintBase=(help.de&&st.de)?1:0; if(st.open) this.hintBase=this.ladder(st).length; this.hint=this.hintBase;
     if(st.type==='object'){ const p=this.g.room.props.get(st.target); st._word=p?.word.fr; }
     this.g.onStep?.(st);
     this.renderTop(); (H[st.type]||H.dialogue).start.call(this,st); }
@@ -185,10 +185,10 @@ const H = {
 
   intro:{
     start(st){ UI.setInputMode('text'); this.refresh(); say(N(st.fr)); },
-    render(st){ const u=this.chapter?.unite; UI.coco(`<span class="tutostep">Chapitre ${P.chapter+1}${u?` · 📘 ${/\d/.test(u)?'Unité '+u:u}`:''}</span>${UI.frLine(st.fr)}<span class="goal">🎯 <b>Darum geht's:</b> ${N(st.ziel)}</span>${st.tipp?`<span class="how">💬 ${N(st.tipp)}</span>`:''}`,{chirp:true});
+    render(st){ const u=this.chapter?.unite; UI.coco(`<span class="tutostep">Chapitre ${P.chapter+1}${u?` · 📘 ${/\d/.test(u)?'Unité '+u:u}`:''}</span>${UI.frLine(st.fr)}${st.willkommen?`<span class="welcome">${N(st.willkommen)}</span>`:''}<span class="goal">🎯 <b>Darum geht's:</b> ${N(st.ziel)}</span>${P.chapter===0?'<span class="how">⏭️ Du kannst schon etwas Französisch? Im Menü ☰ → <b>Kapitel</b> kannst du später einsteigen. Die Wörter jedes Kapitels findest du im Menü unter <b>Vokabeln</b>.</span>':''}${st.tipp?`<span class="how">💬 ${N(st.tipp)}</span>`:''}`,{chirp:true});
       const W=chapterWords(this.chapter);
       if(W.length){ const b=UI.$('bubble'); b.insertAdjacentHTML('beforeend',`<button class="wlink" id="wlink">👀 ${W.length} neue Wörter ansehen</button>`); UI.$('wlink').onclick=(e)=>{ e.stopPropagation(); showWords(this.chapter); }; }
-      UI.chips([{cls:'sol',html:"C'est parti ➜",onClick:()=>{ this.solved=true; this.next(); }}]); },
+      UI.chips([{cls:'sol',html:"C'est parti <small>Los geht's</small> ➜",onClick:()=>{ this.solved=true; this.next(); }}]); },
   },
   dialogue:{
     start(st){ this.line=0; UI.setInputMode('text'); this.refresh(); say(N(st.lines[0].fr)); },
@@ -313,7 +313,7 @@ tuto:{
     start(st){ this.ti=0; UI.setInputMode('text','Parle à {N}…'); this.refresh(); },
     render(st,extra=''){ const t=st.tasks[this.ti];
       document.querySelectorAll('.pulse').forEach(e=>e.classList.remove('pulse')); if(t.pulse) document.querySelector(t.pulse)?.classList.add('pulse');
-      UI.coco(`<span class="tutostep">Tutorial ${this.ti+1}/${st.tasks.length}</span>${UI.frLine(t.fr)}${UI.deLine(t.de)}${extra}`);
+      UI.coco(`<span class="tutostep" style="display:inline-block">So funktioniert's ${this.ti+1}/${st.tasks.length}</span><span class="welcome">${N(t.de)}</span><span class="de">🇫🇷 ${UI.wrap(t.fr)}</span>${extra}`);
       UI.chips([{html:'Überspringen ➜',onClick:()=>this.event(t.wait)}]); say(N(t.fr)); },
     event(st,name){ const t=st.tasks[this.ti]; if(t.wait!==name) return; sfx.pop(); this.ti++;
       document.querySelectorAll('.pulse').forEach(e=>e.classList.remove('pulse'));

@@ -6,7 +6,8 @@ export const $=id=>document.getElementById(id);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 export { esc };
 
-let nameFn=()=> 'Filou', femFn=()=>false;
+let nameFn=()=> 'Filou', femFn=()=>false, namedFn=()=>true;
+export function setNamedFn(f){ namedFn=f; }
 export function setNameFn(f){ nameFn=f; }
 export function setFemFn(f){ femFn=f; }
 // Hündin: Texte automatisch anpassen (il → elle, er → sie …)
@@ -59,7 +60,7 @@ export function chips(list){ const c=$('chips'); c.innerHTML='';
   for(const ch of list){ const b=document.createElement('button'); b.className='chip '+(ch.cls||''); b.innerHTML=N(ch.html); b.onclick=(e)=>{ sfx.tap(); ch.onClick(e,b); }; c.appendChild(b); } }
 export function setInputMode(mode, placeholder){ // 'text' | 'none'
   $('inputRow').style.display= mode==='text'?'flex':'none';
-  $('inp').placeholder=N(placeholder||'Parle à {N}…');
+  $('inp').placeholder= (!namedFn() && (!placeholder||/\{N\}/.test(placeholder)))? 'Schreib hier … oder 🎤' : N(placeholder||'Parle à {N}…');
 }
 
 // ---------- Wort antippen ----------

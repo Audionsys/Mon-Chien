@@ -23,7 +23,7 @@ import { track, checkBadges, BADGES, progressOf, weekReport } from './badges.js'
 import { DOGS, DOG, chooseDog } from '../content/dog.js';
 const { $, N, esc } = UI;
 
-UI.setNameFn(()=>P.name||'Filou'); UI.setFemFn(()=>P.gender==='f');
+UI.setNameFn(()=>P.name||'Filou'); UI.setNamedFn(()=>!!P.name); UI.setFemFn(()=>P.gender==='f');
 const world=createWorld($('c'));
 let room=buildWorld(world, WORLD);
 const roomDef=id=>WORLD.rooms.find(r=>r.id===id);
@@ -35,7 +35,7 @@ A.preloadMusic('music.mp3');
 function headScreen(){ const p=dog.headWorld(); p.y+=0.22; p.project(world.camera); return {x:(p.x*0.5+0.5)*innerWidth, y:(-p.y*0.5+0.5)*innerHeight}; }
 const fx={ hearts(n=3){ const s=headScreen(); UI.floatFx(s.x,s.y,['❤️','💛','✨','🧡'],n); } };
 dog.on('say',(t,ms)=>UI.dogSay(t,ms)); dog.on('hearts',n=>fx.hearts(n));
-export const VERSION='53';
+export const VERSION='54';
 try{ document.getElementById('ver').textContent='v'+VERSION; }catch(e){}
 function toast(html,ms=2600){ const t=$('toast'); t.innerHTML=N(html); t.classList.add('on'); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('on'),ms); }
 
@@ -281,7 +281,7 @@ function submit(){ const raw=inp.value.trim(); if(!raw) return; inp.value=''; A.
   if(pendingGive && /^(tiens|tenez|voila|voici|c est pour toi|pour toi|mange)/.test(raw.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/'/g,' '))){ feed(); return; }
   if(tryToyFetch(raw)) return; run.input(raw); }
 $('send').onclick=submit;
-$('helpBtn').onclick=()=>{ A.audioCtx(); A.sfx.tap(); bump(); if(MIS.active){ misHint(); return; }
+$('helpBtn').onclick=()=>{ A.audioCtx(); A.sfx.tap(); bump(); if(run.step?.type==='tuto'){ run.event('help'); return; } if(MIS.active){ misHint(); return; }
   if(pendingGive){ toast('Sag <b class="fr">Tiens !</b> oder tippe auf den Hund 🐶'); return; }
   const r=run.helpNow(); const st=run.step;
   if(r==='joker'){ toast('In der Hundeshow gibt es nur den 🃏 Joker – den findest du unten.'); return; }
@@ -365,7 +365,7 @@ addEventListener('resize',layoutBubble); document.addEventListener('fullscreench
 // ---------- Kompakte Sprechblase (Handy): klappt nach dem Lesen ein, Tipp klappt auf ----------
 const small=()=>Math.min(innerWidth,innerHeight)<600;
 let miniT=null;
-function bubbleOpen(){ const b=$('bubble'); b.classList.remove('mini'); clearTimeout(miniT); if(small()) miniT=setTimeout(()=>bubbleMini(),9000); layoutBubble(); }
+function bubbleOpen(){ const b=$('bubble'); b.classList.remove('mini'); clearTimeout(miniT); layoutBubble(); }
 function bubbleMini(){ if(!small()) return; const b=$('bubble'); if(b.querySelector('.newword,.build,.medal')) return; b.classList.add('mini'); layoutBubble(); }
 document.getElementById('bubble').addEventListener('click',e=>{ const b=$('bubble'); if(b.classList.contains('mini')){ e.stopPropagation(); bubbleOpen(); } },true);
 // Akzent-Tasten nur beim Tippen

@@ -6,19 +6,23 @@ export default {
   titel: 'Dein Hund zieht ein',
   scene: 'salon',
   icon:'🛋️', story:'Ein kleiner Hund zieht bei dir ein – schüchtern, und er versteht nur Französisch. Gib ihm einen Namen und bring ihm die ersten Tricks bei!',
-  intro: { fr:'Bienvenue ! Voici ton nouveau chien.', ziel:'Du bekommst einen Hund, der nur Französisch versteht. Du gibst ihm einen Namen und bringst ihm die ersten Kommandos bei: kommen, sitzen, Pfote geben, Platz, aufstehen, bellen, drehen.' },
+  intro: { fr:'Bienvenue !', willkommen:'Hier wohnt dein neuer Hund. Er versteht nur Französisch – du bringst es ihm bei und lernst dabei selbst. Keine Sorge: Du musst noch kein einziges Wort können!', ziel:'Du bekommst einen Hund, der nur Französisch versteht. Du gibst ihm einen Namen und bringst ihm die ersten Kommandos bei: kommen, sitzen, Pfote geben, Platz, aufstehen, bellen, drehen.' },
   steps: [
+    { type:'command', cmd:'bonjour', open:true,
+      fr:'Dis bonjour à ton chien !', de:'Sag Hallo zu deinem Hund! Auf Französisch heißt Hallo: Bonjour (sprich: bong-schuhr). Schreib es unten ins Feld – oder tippe aufs 🎤 und sag es laut.',
+      hints:['Tippe unten auf <b class="fr">Dis bonjour !</b>, wenn du es nicht schreiben magst.'] },
+
     { type:'name' },
 
     { type:'tuto', tasks:[
-      { wait:'floor', fr:'Touche le sol : {N} va venir !',             de:'Tippe irgendwo auf den Boden – {N} läuft hin!' },
-      { wait:'prop',  fr:'Touche une chose : tu entends le mot !',      de:'Tippe auf einen Gegenstand (Sofa, Ball, Körbchen …) – du hörst das französische Wort.' },
-      { wait:'pet',   fr:'Caresse {N} ! Touche-le.',                    de:'Streichle {N}: Tippe auf ihn!' },
-      { wait:'word',  fr:'Touche un mot dans ma bulle !',               de:'Tippe ein blau unterstrichenes Wort hier in meiner Sprechblase an – ich sage es dir vor und übersetze es.', pulse:'#bubble' },
-      { wait:'carnet',fr:'Ouvre le carnet !',                           de:'Öffne das Carnet 📖 oben rechts – dort sammelst du alle Wörter.', pulse:'#carnetBtn' },
+      { wait:'floor', fr:'Touche le sol !',      de:'Tippe irgendwo auf den Boden – {N} läuft hin. (Zweimal schnell tippen: {N} rennt!)' },
+      { wait:'prop',  fr:'Touche une chose !',   de:'Tippe auf einen Gegenstand, z. B. das Sofa oder den Ball – du hörst das französische Wort.' },
+      { wait:'pet',   fr:'Caresse {N} !',        de:'Tippe auf {N} – so streichelst du ihn.' },
+      { wait:'word',  fr:'Touche un mot !',      de:'Tippe ein unterstrichenes Wort hier in meiner Karte an – ich sage es dir vor und übersetze es.', pulse:'#bubble' },
+      { wait:'help',  fr:"Demande de l'aide !",  de:'Wenn du nicht weiterweißt: Tippe auf die gelbe 💡 unten links. Probier es aus!', pulse:'#helpBtn' },
     ]},
 
-    { type:'command', cmd:'viens',
+    { type:'command', cmd:'viens', open:true,
       fr:'{N} est timide. Dis-lui de venir !', de:'{N} ist schüchtern. Sag ihm, er soll kommen!',
       hints:['„Komm!“ fängt auf Französisch mit <b>Vi…</b> an.'] },
 
