@@ -131,6 +131,7 @@ export const WORLD = {
         { id:'boucher', type:'npc', img:'adv/boucher.webp', h:1.85, w:0.82, pos:[-0.2,-1.95], word:{fr:'le boucher', de:'der Metzger'}, spot:[-0.2,-0.6] },
         { id:'comptoir', type:'cutout', img:'adv/comptoir.webp', h:1.1, w:3.8, pos:[-0.4,-1.55], word:{fr:'le comptoir', de:'die Theke'}, block:[3.8,0.5], spot:[-0.4,-0.6] },
         { id:'cliente', type:'npc', img:'adv/cliente.webp', h:1.6, w:0.74, pos:[-2.6,-1.1], word:{fr:'la cliente', de:'die Kundin'}, block:[0.6,0.4], spot:[-1.9,-0.6] },
+        { id:'porte', type:'cutout', h:2.2, w:1.0, pos:[2.95,-2.17], word:{fr:'la porte de derrière', de:'die Hintertür'}, spot:[2.95,-1.5] },
         { id:'livreur', type:'npc', img:'adv/livreur.webp', h:1.8, w:0.8, pos:[3.05,-2.0], word:{fr:'le livreur', de:'der Lieferant'}, spot:[2.4,-0.9] },
       ],
       start:{ pos:[-2.6,0.9], yaw:0.4 } },

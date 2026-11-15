@@ -540,8 +540,8 @@ export function buildWorld(world, W){
     // Gegenstände (Koordinaten relativ zur Raummitte)
     for(const p of (R.props||[])){
       if(p.type==='cutout'||p.type==='npc'){ // 2D-Figur/Kulisse als aufrechte Bildebene (2,5D)
-        const tex=new THREE.TextureLoader().load(p.img); tex.colorSpace=THREE.SRGBColorSpace; tex.anisotropy=4;
-        const geo=new THREE.PlaneGeometry(1,1); geo.translate(0,0.5,0); const m=new THREE.Mesh(geo,new THREE.MeshBasicMaterial({map:tex,alphaTest:0.5,toneMapped:false,side:THREE.DoubleSide}));
+        const tex=p.img? new THREE.TextureLoader().load(p.img):null; if(tex){ tex.colorSpace=THREE.SRGBColorSpace; tex.anisotropy=4; }
+        const geo=new THREE.PlaneGeometry(1,1); geo.translate(0,0.5,0); const m=new THREE.Mesh(geo, tex? new THREE.MeshBasicMaterial({map:tex,alphaTest:0.5,toneMapped:false,side:THREE.DoubleSide}) : new THREE.MeshBasicMaterial({transparent:true,opacity:0,depthWrite:false}));
         const w=p.w||p.h*0.45; m.scale.set(w,p.h,1); const grp=new THREE.Group(); grp.add(m); const gx=rx+p.pos[0], gz=rz+p.pos[1]; grp.position.set(gx,p.y||0,gz); root.add(grp);
         m.userData.propId=p.id; pickables.push(m); grp.userData.npc=p.type==='npc'; grp.userData.body=m; grp.userData.base={w,h:p.h};
         const e={...p, room:R.id, pos:[gx,gz], spot:p.spot?[rx+p.spot[0],rz+p.spot[1]]:null, object:grp, home:grp.position.clone()};

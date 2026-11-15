@@ -305,6 +305,18 @@
   #npcSay.on{opacity:1}
   #npcSay:after{content:"";position:absolute;left:50%;bottom:-9px;margin-left:-9px;border:9px solid transparent;border-bottom:0;border-top-color:#fff}
   #npcSay small{display:block;font-size:12px;color:#7a6a80;font-style:italic;margin-top:2px}
+  #verbRing{position:fixed;z-index:9;width:200px;height:200px;margin:-100px 0 0 -100px;pointer-events:none;opacity:0;transform:scale(.6);transition:opacity .15s,transform .15s}
+  #verbRing.on{opacity:1;transform:scale(1);pointer-events:auto}
+  #verbRing .rc{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:rgba(255,250,241,.95);border-radius:14px;padding:4px 9px;text-align:center;font-size:14px;box-shadow:var(--shadow);white-space:nowrap}
+  #verbRing .rc small{display:block;font-size:11px;color:#8a7a6a}
+  #verbRing button{position:absolute;transform:translate(-50%,-50%);width:66px;height:66px;border-radius:50%;border:0;background:#fffaf1;box-shadow:0 4px 12px rgba(0,0,0,.22);display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:Fredoka,Nunito,sans-serif;cursor:pointer;padding:0}
+  #verbRing button span{font-size:24px;line-height:1}
+  #verbRing button b{font-size:12px;font-weight:600;color:#5a3d22}
+  #verbRing button:active{transform:translate(-50%,-50%) scale(.92)}
+  #advGoal{position:fixed;z-index:4;left:50%;top:calc(env(safe-area-inset-top,0px) + 64px);transform:translateX(-50%);background:rgba(255,250,241,.95);border-radius:999px;padding:6px 14px;font-weight:800;font-size:14px;box-shadow:var(--shadow);display:none;max-width:90vw;text-align:center}
+  #advGoal.on{display:block}
+  body.adv #progress{visibility:hidden}
+  body.adv #bubble .xpand{display:none}
   .vermenu{text-align:center;font-size:12px;opacity:.6;margin-top:10px}
 </style>
 </head>

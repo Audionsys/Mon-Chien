@@ -37,7 +37,7 @@ A.preloadMusic('music.mp3');
 function headScreen(){ const p=dog.headWorld(); p.y+=0.22; p.project(world.camera); return {x:(p.x*0.5+0.5)*innerWidth, y:(-p.y*0.5+0.5)*innerHeight}; }
 const fx={ hearts(n=3){ const s=headScreen(); UI.floatFx(s.x,s.y,['❤️','💛','✨','🧡'],n); } };
 dog.on('say',(t,ms)=>UI.dogSay(t,ms)); dog.on('hearts',n=>fx.hearts(n));
-export const VERSION='57';
+export const VERSION='58';
 try{ document.getElementById('ver').textContent='v'+VERSION; }catch(e){}
 function toast(html,ms=2600){ const t=$('toast'); t.innerHTML=N(html); t.classList.add('on'); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('on'),ms); }
 
@@ -57,9 +57,9 @@ g.cocoPoint=(id)=>{ const s=screenOf(id); if(s) Coco.pointAt(s.x,s.y); };
 g.celebrate=()=>Coco.celebrate(); g.openDogs=openDogs;
 const run=new Runner(g);
 // ---------- Abenteuer (Prototyp) ----------
-function giveSausage(){ const m=new THREE.Mesh(new THREE.CapsuleGeometry(0.035,0.16,4,10),new THREE.MeshStandardMaterial({color:'#a5473f',roughness:0.6})); m.rotation.z=Math.PI/2;
-  const grp=new THREE.Group(); grp.add(m); dog.mouth.add(grp); grp.position.set(0,-0.03,0.02); setTimeout(()=>{ dog.mouth.remove(grp); m.geometry.dispose(); dog.eat?.(); },2200); }
-const ADV=createAdventure({ room:()=>room, dog, fx, toast:(h,ms)=>toast(h,ms), celebrate:()=>g.celebrate(), love:(k)=>love?.(k), switchTo:(id)=>{ switchScene(id); camT.x=dog.root.position.x; camT.z=0; }, resume:()=>{ run.begin(); }, giveSausage });
+function giveSausage(ms=2200){ const m=new THREE.Mesh(new THREE.CapsuleGeometry(0.035,0.16,4,10),new THREE.MeshStandardMaterial({color:'#a5473f',roughness:0.6})); m.rotation.z=Math.PI/2;
+  const grp=new THREE.Group(); grp.add(m); dog.mouth.add(grp); grp.position.set(0,-0.03,0.02); setTimeout(()=>{ dog.mouth.remove(grp); m.geometry.dispose(); },ms); }
+const ADV=createAdventure({ scene:()=>world.scene, room:()=>room, dog, fx, toast:(h,ms)=>toast(h,ms), celebrate:()=>g.celebrate(), love:(k)=>love?.(k), switchTo:(id)=>{ switchScene(id); camT.x=dog.root.position.x; camT.z=0; }, resume:()=>{ run.begin(); }, giveSausage });
 
 // ---------- Freundschaft: Sympathie-Herzen & Kunststücke ----------
 P.hearts ??= 0; P.tricks ??= {};
@@ -288,7 +288,7 @@ function chipSpoken(raw){ const s=L.norm(raw); if(!s) return false; const cand=[
   for(const b of document.querySelectorAll('#chips .chip.ans')){ const c=b.cloneNode(true); c.querySelectorAll('small').forEach(x=>x.remove()); const lab=L.norm(c.textContent); if(!lab) continue;
     const r=L.checkAnswer(raw,[lab]); const part=s.length>=4 && (' '+lab+' ').includes(' '+s+' ');
     if(r.ok||part) cand.push({b,exact:r.exact||s===lab}); }
-  const pick=cand.find(c=>c.exact)||(cand.length===1?cand[0]:null); if(!pick) return false; pick.b.click(); return true; }
+  const pick=cand.find(c=>c.exact)||(cand.length===1?cand[0]:null); if(!pick) return false; window.__spoken=true; pick.b.click(); window.__spoken=false; return true; }
 function submit(){ const raw=inp.value.trim(); if(!raw) return; inp.value=''; A.audioCtx(); A.sfx.tap(); bump(); if(MIS.active) return mischiefInput(raw);
   if(pendingGive && /^(tiens|tenez|voila|voici|c est pour toi|pour toi|mange)/.test(raw.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/'/g,' '))){ feed(); return; }
   if(chipSpoken(raw)) return;
@@ -351,7 +351,7 @@ $('c').addEventListener('pointerup',e=>{
   if(ray.ray.distanceToPoint(c)<dog.H*0.55){ if(MIS.active){ UI.dogSay('?',800); misHint(); return; } if(pendingGive){ feed(); return; } dog.wake(); dog.praise('caresse'); UI.dogSay('♥',900); run.event('pet'); return; }
   const hit=room.pick(ndc,world.camera); if(!hit) return;
   const now=performance.now(); const dbl=!!(lastTap && now-lastTap.t<420 && Math.hypot(e.clientX-lastTap.x,e.clientY-lastTap.y)<60); lastTap={t:now,x:e.clientX,y:e.clientY};
-  if(hit.prop){ const p=hit.prop; const w=hit.part||p.word;
+  if(hit.prop){ const p=hit.prop; const w=hit.part||p.word; if(ADV.active && !hit.part && ADV.tap(p,e.clientX,e.clientY)){ collectWord(w); return; }
     // begehbare Flächen (Teppich, Straße, Zebrastreifen …): Wort sagen UND hinlaufen; Doppeltipp = rennen, Wort nicht nochmal
     const ground= GROUND.has(p.type) || (hit.point && hit.point.y<0.06);
     if(!(dbl&&ground)){ A.sfx.pop(); UI.wordLabel(e.clientX,e.clientY-10,w.fr,w.de); A.say(w.fr,{word:true}); collectWord(w); if(ADV.active){ if(ADV.prop(p)) return; } else { run.event('prop'); if(!MIS.active && run.prop(p)) return; } }
