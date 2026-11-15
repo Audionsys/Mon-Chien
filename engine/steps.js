@@ -172,10 +172,10 @@ function sayStep(st){ const t=st.erz? (st.fr?N(st.fr):sayable(st.erz)) : N(st.fr
 function sayLine(L){ const t=L.erz? sayable(L.erz) : N(L.fr); if(t) say(t); }
 const H = {
   name:{
-    start(st){ UI.setInputMode('text',"Il s'appelle…"); this.refresh(); say("Voici ton nouveau chien ! Comment s'appelle ton chien ?"); },
-    render(){ UI.coco(`${UI.frLine("Voici ton nouveau chien ! Comment s'appelle ton chien ?")}${UI.deLine('Hier ist dein neuer Hund! Wie heißt er? Gib ihm einen Namen – oder nimm einen Vorschlag.')}${UI.tipLine("Antworte so: <b class=\"fr\">Il s'appelle …</b> (= Er heißt …)")}`);
+    start(st){ UI.setInputMode('text',"Name …"); this.refresh(); say("Comment s'appelle ton chien ?"); },
+    render(){ UI.coco(`<span class="who">Coco</span><span class="erz">${weave("Dein Hund braucht einen Namen! Schreib ihn unten ins Feld.")}</span><span class="de">Keine Idee? Unten sind französische Hundenamen – daneben steht, was sie bedeuten.</span>`);
       const ideas=[['Réglisse','Lakritz'],['Nuit','Nacht'],['Filou','Schlingel'],['Biscuit','Keks'],['Noisette','Haselnuss']];
-      UI.chips([{html:'🐶 Anderer Hund?',onClick:()=>this.g.openDogs?.()}, ...ideas.map(([n,de])=>({cls:'fr fill',html:`${n} <small>${de}</small>`,onClick:()=>{ UI.$('inp').value="Il s'appelle "+n; UI.$('inp').focus(); say(n); }}))]); },
+      UI.chips([...ideas.map(([n,de])=>({cls:'fr fill',html:`${n} <small>= ${de}</small>`,onClick:()=>{ UI.$('inp').value="Il s'appelle "+n; UI.$('inp').focus(); say(n); }}))]); },
     input(st,raw){
       let n=raw.trim().replace(/^(il|elle)\s*s['’ ]?\s*app?ell?e\s*/i,'').replace(/^(c['’ ]?est|son nom est|mon chien s['’ ]?appelle)\s*/i,'').replace(/[.!?]+$/,'').trim();
       n=n.split(/\s+/).slice(0,2).join(' ').slice(0,16);
@@ -192,7 +192,7 @@ const H = {
         learn('w:il s appelle',{kind:'word',fr: g==='f'?`Elle s'appelle ${n}.`:`Il s'appelle ${n}.`,de: g==='f'?`Sie heißt ${n}.`:`Er heißt ${n}.`,gram:"s'appeler: il s'appelle / elle s'appelle"},1);
         UI.coco(`<span class="mission fr">${t}</span>${UI.noteLine(g==='f'?'📖 <b class="fr">une chienne</b> = eine Hündin · <b class="fr">elle</b> = sie':'📖 <b class="fr">un chien</b> = ein Hund · <b class="fr">il</b> = er')}${UI.tipLine(`Ruf ${g==='f'?'sie':'ihn'} ruhig mal: <b class="fr">${n} !</b>`)}`);
         UI.chips([{cls:'sol',html:'Weiter ➜',onClick:()=>this.next()}]); };
-      setTimeout(()=>{ if(P.gender) return; UI.coco(`${UI.frLine(`${n}, c'est un chien ou une chienne ?`)}${UI.deLine(`Ist ${n} ein Junge (Rüde) oder ein Mädchen (Hündin)?`)}`); say(`${n}, c'est un chien ou une chienne ?`); },3200);
+      setTimeout(()=>{ if(P.gender) return; UI.coco(`<span class="erz">${weave(`Ist ${n} ein Junge oder ein Mädchen? Auf Französisch: «un chien» = <i>ein Hund</i>, «une chienne» = <i>eine Hündin</i>.`)}</span>`); say(`${n}, c'est un chien ou une chienne ?`); },3200);
       P.gender=null;
       UI.chips([{cls:'sol fr ans',html:"♂ C'est un chien.",onClick:()=>pickG('m')},{cls:'sol fr ans',html:"♀ C'est une chienne.",onClick:()=>pickG('f')}]); return true; },
   },
