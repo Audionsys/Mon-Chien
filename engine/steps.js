@@ -9,6 +9,9 @@ import * as UI from './ui.js';
 const { N } = UI;
 const shuffle=a=>a.map(x=>[Math.random(),x]).sort((p,q)=>p[0]-q[0]).map(x=>x[1]);
 const cmdKey=id=>'cmd:'+id;
+// Deutsch erzählt, Französisch ist eingewoben: «…» wird zu antippbarem Französisch
+export const weave=s=>N(s).replace(/«\s*([^»]+?)\s*»/g,(m,x)=>`<b class="fr wv">${UI.wrap(x)}</b>`);
+const sayable=s=>{ const m=[...N(s||'').matchAll(/«\s*([^»]+?)\s*»/g)].map(x=>x[1]); return m.join(' … '); };
 export const help={ get de(){ try{ return localStorage.getItem('chien_helpde')!=='0'; }catch(e){ return true; } }, set de(v){ try{ localStorage.setItem('chien_helpde',v?'1':'0'); }catch(e){} } };
 const HOW={ command:'✍️ Schreib das französische Kommando unten ins Feld und tippe ➤.', choice:'👆 Tippe unten die richtige Antwort an.', fill:'✍️ Schreib das fehlende Wort unten ins Feld.',
   build:'👆 Tippe die Wörter unten in der richtigen Reihenfolge an.', object:'👆 Tippe den Gegenstand im Zimmer an.', teachcard:'✍️ Schreib das französische Wort (mit le/la) unten ins Feld.',
@@ -34,7 +37,7 @@ export function solutionOf(st){
 function markFurthest(){ const f=P.furthest||{chapter:0,step:0}; if(P.chapter>f.chapter || (P.chapter===f.chapter && P.step>f.step)) P.furthest={chapter:P.chapter,step:P.step}; }
 export { markFurthest };
 // kurze Beschreibung eines Schritts (für "Hierhin springen")
-export function stepLabel(st){ const map={intro:'🎯 Einführung',name:'🐶 Name geben',tuto:'🧭 Tutorial',dialogue:'💬 Geschichte',command:'🗣️ Kommando',choice:'👆 Auswählen',fill:'✍️ Lücke füllen',build:'🧩 Satz bauen',object:'🔍 Gegenstand finden',teach:'🧠 Vokabeln beibringen',listen:'👂 Hören',defi:'🏆 Hundeshow (Test)'};
+export function stepLabel(st){ const map={rappel:'🔁 Wiederholung',intro:'🎯 Einführung',name:'🐶 Name geben',tuto:'🧭 Tutorial',dialogue:'💬 Geschichte',command:'🗣️ Kommando',choice:'👆 Auswählen',fill:'✍️ Lücke füllen',build:'🧩 Satz bauen',object:'🔍 Gegenstand finden',teach:'🧠 Vokabeln beibringen',listen:'👂 Hören',defi:'🏆 Hundeshow (Test)'};
   let t=map[st.type]||st.type; if(st.type==='command') t+=': '+COMMANDS[st.cmd].de; else if(st.type==='teach') t+=': '+(DECKS[st.deck]?.titel||''); else if(st.de && st.type!=='dialogue') t+=': '+st.de.replace(/<[^>]+>/g,'').slice(0,46); return N(t); }
 
 export class Runner {
@@ -47,7 +50,7 @@ export class Runner {
     if(P.chapter>=COURSE.chapters.length){ this.freePlay(); return; }
     this.begin();
   }
-  begin(){ UI.thinkHide(); this.wrong=0; this.solved=false; const st=this.step; if(!st) return this.chapterDone(); this.hintBase=(help.de&&st.de)?1:0; if(st.open) this.hintBase=this.ladder(st).length; this.hint=this.hintBase;
+  begin(){ UI.thinkHide(); this.wrong=0; this.solved=false; const st=this.step; if(!st) return this.chapterDone(); this.hintBase=(help.de&&st.de&&!st.erz)?1:0; if(st.open&&!st.erz) this.hintBase=this.ladder(st).length; this.hint=this.hintBase;
     if(st.type==='object'){ const p=this.g.room.props.get(st.target); st._word=p?.word.fr; }
     this.g.onStep?.(st);
     this.renderTop(); (H[st.type]||H.dialogue).start.call(this,st); }
@@ -64,14 +67,23 @@ export class Runner {
   }
 
   // ---- Tippleiter: Übersetzung → eigene Tipps → Lösung ----
-  ladder(st){ if(st.type==='teach') st=this.cardSt||st; const L=[]; if(st.de) L.push(UI.deLine(st.de)); (st.hints||[]).forEach(h=>L.push(UI.tipLine(h)));
+  ladder(st){ if(st.type==='teach') st=this.cardSt||st; const L=[]; if(st.de && !st.erz) L.push(UI.deLine(st.de)); (st.hints||[]).forEach(h=>L.push(UI.tipLine(h)));
     const sol=solutionOf(st); if(sol) L.push(`<span class="tip">✅ Lösung: <b class="fr">${UI.esc(N(sol))}</b></span>`); return L; }
-  prompt(st,extra=''){ const L=this.ladder(st); let h=UI.frLine(st.fr); for(let i=0;i<Math.min(this.hint,L.length);i++) h+=L[i]; if(HOW[st.type]) h+=`<span class="how">${HOW[st.type]}</span>`; UI.coco(h+extra,{chirp:false}); this.armIdle(); }
+  prompt(st,extra=''){ const L=this.ladder(st); let h= st.erz? `<span class="erz">${weave(st.erz)}</span>${st.fr&&st.type!=='listen'&&!N(st.erz).includes(N(st.fr))?`<span class="frsub">🇫🇷 ${UI.wrap(N(st.fr))} <button class="spk" data-say="${UI.esc(N(st.fr))}">🔊</button></span>`:''}` : UI.frLine(st.fr); for(let i=0;i<Math.min(this.hint,L.length);i++) h+=L[i]; if(HOW[st.type]) h+=`<span class="how">${HOW[st.type]}</span>`; UI.coco(h+extra,{chirp:false}); this.armIdle(); }
   helpChip(st){ const L=this.ladder(st); if(this.hint>=L.length) return [];
     const lbl= this.hint===L.length-1? '💡 Lösung zeigen' : this.hint<=(this.hintBase||0)? '💡 Tipp, Coco?' : '💡 Noch ein Tipp';
     return [{cls:'help', html:lbl, onClick:()=>{ this.hint++; this.refresh(); if(this.hint===L.length) this.onSolutionShown?.(st); }}]; }
   refresh(extra=''){ const st=this.step; (H[st.type]||H.dialogue).render.call(this,st,extra); }
   armIdle(){ clearTimeout(this.idleT); if(this.solved) return; this.idleT=setTimeout(()=>{ if(this.g.busy?.()) return this.armIdle(); if(this.hint<=(this.hintBase||0) && this.step?.de){ this.hint++; this.refresh(); return; } if(false){ this.hint=1; this.refresh(); } },20000); }
+  rNext(st){ const it=this.rq[this.ri]; this.rTip=0; this.rDir= it.kind!=='cmd' && (it.box||1)<3 ? 'rec':'prod';
+    if(this.rDir==='rec'){ const others=Object.values(P.items).filter(x=>x.de&&x.de!==it.de&&x.kind!=='cmd').map(x=>x.de); const pick=[]; while(pick.length<2&&others.length){ pick.push(others.splice(Math.floor(Math.random()*others.length),1)[0]); }
+      while(pick.length<2) pick.push(['der Ball','das Sofa','danke','die Katze'][pick.length]); this.rOpts=shuffle([it.de,...pick]); UI.setInputMode('text'); say(N(it.fr),{word:true}); }
+    else UI.setInputMode('text', it.kind==='cmd'?'Parle à {N}…':'Auf Französisch …');
+    this.refresh(); }
+  rAnswer(st,ok){ const it=this.rq[this.ri]; const key=Object.keys(P.items).find(k=>P.items[k]===it)||(it.kind==='cmd'?cmdKey(it.cmd):'w:'+it.fr);
+    if(ok){ learn(key,{},this.rTip?1:2); this.rok++; sfx.success(); this.g.fx.hearts(2); this.g.dog.happy(900); }
+    else { learn(key,{},0); sfx.soft_no(); this.refresh(UI.tipLine(`Richtig ist: <b class="fr">${UI.esc(N(it.kind==='cmd'?COMMANDS[it.cmd].fr:it.fr))}</b> = ${UI.esc(N(it.kind==='cmd'?COMMANDS[it.cmd].de:it.de))}`)); }
+    const sp=P.step; setTimeout(()=>{ if(P.step!==sp||this.step?.type!=='rappel') return; this.ri++; if(this.ri<this.rq.length) this.rNext(st); else { P.treats+=this.rok; this.solved=true; UI.coco(`<span class="erz">${weave(this.rok===this.rq.length?'Alles gewusst! «Bravo !» 🎉':'Gut gemacht! Was noch wackelt, frage ich dich bald wieder.')}</span>`); setTimeout(()=>{ if(P.step===sp) this.next(); },1600); } }, ok?1100:2600); }
   miss(extra){ if(Math.random()<0.4) setTimeout(()=>this.g.quip?.('oops'),2200); this.wrong++; this.hint=Math.min(this.ladder(this.step).length, Math.max(this.hint, 1) + (this.wrong>1?1:0)); sfx.soft_no(); this.refresh(extra); }
 
   // ---- geschafft ----
@@ -87,8 +99,8 @@ export class Runner {
     save(); this.renderTop();
     const sol=solutionOf(st);
     let h=`<span class="mission fr">${['Bravo !','Super !','Génial !','Très bien !'][Math.floor(Math.random()*4)]}</span> <span class="de" style="display:inline">+${gain} 🦴</span>`;
-    const full = st.type==='command'? COMMANDS[st.cmd].fr : (st.type==='choice'||st.type==='fill'||st.type==='listen')? (st.full|| (st.type==='listen'?st.answer: st.fr.replace('___',sayText||sol))) : st.type==='build'? st.answer+'.' : null;
-    const fullDe = st.type==='command'? COMMANDS[st.cmd].de : st.type==='build'? ((st.de||'').match(/„(.+)“/)||[])[1]||'' : st.de;
+    const full = st.type==='command'? COMMANDS[st.cmd].fr : (st.type==='choice'||st.type==='fill'||st.type==='listen')? (st.full|| (st.type==='listen'?st.answer: (st.fr||'___').replace('___',sayText||sol))) : st.type==='build'? st.answer+'.' : null;
+    const iDe=((st.erz||'').match(/<i>(.+?)<\/i>/)||[])[1]; const fullDe = st.type==='command'? COMMANDS[st.cmd].de : st.type==='build'? (((st.de||'').match(/„(.+)“/)||[])[1]||iDe||'') : (st.de||iDe);
     if(full) h+=`<span class="note">📖 <b class="fr">${UI.esc(N(full))}</b>${fullDe?' = '+UI.esc(N(fullDe)):''}</span>`;
     if(st.type==='command') h+=UI.noteLine(`✏️ ${COMMANDS[st.cmd].gram}`);
     if(st.note) h+=UI.noteLine('✏️ '+st.note);
@@ -156,6 +168,8 @@ export function showWords(ch){ const W=chapterWords(ch); P.seenWords ??= {}; P.s
     <p class="sub">Alle Wörter findest du später im 📖 Carnet.</p>`, {onOpen:b=>b.querySelectorAll('[data-w]').forEach(x=>x.onclick=()=>say(N(W[+x.dataset.w].fr),{word:true}))}); }
 
 // ================= Schritt-Typen =================
+function sayStep(st){ const t=st.erz? (st.fr?N(st.fr):sayable(st.erz)) : N(st.fr||''); if(t) say(t); }
+function sayLine(L){ const t=L.erz? sayable(L.erz) : N(L.fr); if(t) say(t); }
 const H = {
   name:{
     start(st){ UI.setInputMode('text',"Il s'appelle…"); this.refresh(); say("Voici ton nouveau chien ! Comment s'appelle ton chien ?"); },
@@ -184,23 +198,26 @@ const H = {
   },
 
   intro:{
-    start(st){ UI.setInputMode('text'); this.refresh(); say(N(st.fr)); },
+    start(st){ UI.setInputMode('text'); this.refresh(); sayStep(st); },
     render(st){ const u=this.chapter?.unite; UI.coco(`<span class="tutostep">Chapitre ${P.chapter+1}${u?` · 📘 ${/\d/.test(u)?'Unité '+u:u}`:''}</span>${UI.frLine(st.fr)}${st.willkommen?`<span class="welcome">${N(st.willkommen)}</span>`:''}<span class="goal">🎯 <b>Darum geht's:</b> ${N(st.ziel)}</span>${P.chapter===0?'<span class="how">⏭️ Du kannst schon etwas Französisch? Im Menü ☰ → <b>Kapitel</b> kannst du später einsteigen. Die Wörter jedes Kapitels findest du im Menü unter <b>Vokabeln</b>.</span>':''}${st.tipp?`<span class="how">💬 ${N(st.tipp)}</span>`:''}`,{chirp:true});
       const W=chapterWords(this.chapter);
       if(W.length){ const b=UI.$('bubble'); b.insertAdjacentHTML('beforeend',`<button class="wlink" id="wlink">👀 ${W.length} neue Wörter ansehen</button>`); UI.$('wlink').onclick=(e)=>{ e.stopPropagation(); showWords(this.chapter); }; }
       UI.chips([{cls:'sol',html:"C'est parti <small>Los geht's</small> ➜",onClick:()=>{ this.solved=true; this.next(); }}]); },
   },
   dialogue:{
-    start(st){ this.line=0; UI.setInputMode('text'); this.refresh(); say(N(st.lines[0].fr)); },
-    render(st){ const L=st.lines[this.line]; UI.coco(`${UI.frLine(L.fr)}${UI.deLine(L.de)}`,{chirp:false});
-      UI.chips([{cls:'sol',html: this.line<st.lines.length-1?'Weiter ➜':'OK ➜', onClick:()=>{ if(this.line<st.lines.length-1){ this.line++; this.refresh(); say(N(st.lines[this.line].fr)); } else { this.solved=true; this.next(); } }}]); },
+    start(st){ this.line=0; UI.setInputMode('text'); this.refresh(); sayLine(st.lines[0]); },
+    render(st){ const L=st.lines[this.line]; UI.coco(L.erz? `${L.who?`<span class="who">${UI.esc(N(L.who))}</span>`:''}<span class="erz">${weave(L.erz)}</span>` : `${L.who?`<span class="who">${UI.esc(N(L.who))}</span>`:''}${UI.frLine(L.fr)}${UI.deLine(L.de)}`,{chirp:false});
+      UI.chips([{cls:'sol',html: this.line<st.lines.length-1?'Weiter ➜':'OK ➜', onClick:()=>{ if(this.line<st.lines.length-1){ this.line++; this.refresh(); sayLine(st.lines[this.line]); } else { this.solved=true; this.next(); } }}]); },
   },
 
   command:{
-    start(st){ UI.setInputMode('text','Parle à {N}…'); this.refresh(); say(N(st.fr)); },
-    render(st,extra=''){ this.prompt(st,extra); const ch=this.helpChip(st);
+    start(st){ UI.setInputMode('text','Parle à {N}…');
+      if(st.recall){ const box=P.items[cmdKey(st.cmd)]?.box||0; if(box<2) this.hint=this.hintBase=Math.min(1,this.ladder(st).length); }
+      this.refresh(); const t=st.erz? sayable(st.erz) : N(st.fr); if(t) say(t); },
+    render(st,extra=''){ this.prompt(st,extra); const ch= st.open&&st.erz? [] : this.helpChip(st);
       if(this.hint>=1) ch.push({html:'🔊 Anhören',onClick:()=>say(COMMANDS[st.cmd].fr,{word:true})});
-      if(this.hint>=this.ladder(st).length) ch.push({cls:'sol fr',html:COMMANDS[st.cmd].fr,onClick:()=>{ UI.$('inp').value=COMMANDS[st.cmd].fr; UI.$('inp').focus(); say(COMMANDS[st.cmd].fr); }});
+      if(st.open&&st.erz&&this.hint<1) ch.unshift({html:'🔊 Anhören',onClick:()=>say(COMMANDS[st.cmd].fr,{word:true})});
+      if(st.open&&st.erz || this.hint>=this.ladder(st).length) ch.push({cls:'sol fr',html:COMMANDS[st.cmd].fr,onClick:()=>{ UI.$('inp').value=COMMANDS[st.cmd].fr; UI.$('inp').focus(); say(COMMANDS[st.cmd].fr); }});
       UI.chips(ch); },
     input(st,raw){
       const r=parseCommand(raw,P.name);
@@ -217,8 +234,27 @@ const H = {
       this.miss(UI.tipLine(`Hmm, <b class="fr">« ${UI.esc(raw)} »</b> kennt {N} (noch) nicht.`)); return true; },
   },
 
+  // Wiederholung in der Geschichte: holt fällige Wörter/Kommandos zurück (verteilte Wiederholung + Abrufen)
+  rappel:{
+    start(st){ const pool=dueItems(12,it=>(it.kind==='cmd'&&COMMANDS[it.cmd])||((it.kind==='word'||it.kind==='vocab')&&it.fr&&it.de&&it.fr.length<26));
+      this.rq=pool.slice(0,st.n||3); this.ri=0; this.rok=0;
+      if(!this.rq.length){ this.solved=true; return this.next(); }
+      this.rNext(st); },
+    render(st,extra=''){ const it=this.rq[this.ri]; if(!it) return; const head=`<span class="tutostep" style="display:inline-block">🔁 ${this.ri+1}/${this.rq.length}</span>${this.ri===0?`<span class="erz">${weave(st.erz||'Kurze Wiederholung! {N} prüft, ob du noch alles weißt.')}</span>`:''}`;
+      if(it.kind==='cmd'){ UI.coco(`${head}<span style="display:block;margin-top:4px" class="mission">{N} soll: <b>${UI.esc(COMMANDS[it.cmd].de)}</b></span><span class="de">Wie sagst du es auf Französisch?</span>${extra}`,{chirp:false});
+        UI.chips(this.rTip? [{cls:'sol fr',html:COMMANDS[it.cmd].fr,onClick:()=>{ UI.$('inp').value=COMMANDS[it.cmd].fr; }}] : [{cls:'help',html:'💡 Tipp',onClick:()=>{ this.rTip=1; this.refresh(UI.tipLine(`Fängt an mit <b class="fr">${UI.esc(COMMANDS[it.cmd].fr.slice(0,3))}…</b>`)); }}]); return; }
+      if(this.rDir==='rec'){ UI.coco(`${head}<span style="display:block;margin-top:4px" class="mission fr">${UI.wrap(N(it.fr))}</span><button class="spk" data-say="${UI.esc(N(it.fr))}">🔊</button><span class="de">Was heißt das?</span>${extra}`,{chirp:false});
+        UI.chips(this.rOpts.map(o=>({cls:'ans',html:UI.esc(N(o)),onClick:()=>this.rAnswer(st,o===it.de)}))); return; }
+      UI.coco(`${head}<span style="display:block;margin-top:4px" class="mission">${UI.esc(N(it.de))}</span><span class="de">Wie heißt das auf Französisch? Schreib oder sag es.</span>${extra}`,{chirp:false});
+      UI.chips(this.rTip? [{cls:'sol fr',html:UI.esc(N(it.fr)),onClick:()=>{ UI.$('inp').value=N(it.fr); }}] : [{cls:'help',html:'💡 Lösung zeigen',onClick:()=>{ this.rTip=1; this.refresh(); }}]); },
+    input(st,raw){ const it=this.rq[this.ri]; if(!it) return false;
+      if(it.kind==='cmd'){ const r=parseCommand(raw,P.name); if((r.type==='ok'||r.type==='close')&&r.id===it.cmd){ this.g.dog.do(COMMANDS[it.cmd].action); this.rAnswer(st,true); } else { this.g.dog.tilt(); this.rAnswer(st,false); } return true; }
+      if(this.rDir==='rec') return false;
+      const r=checkAnswer(raw,[N(it.fr)]); this.rAnswer(st,r.ok); return true; },
+  },
+
   choice:{
-    start(st){ this.opts=shuffle(st.options.slice()); this.bad=new Set(); UI.setInputMode('text','Antippen, schreiben oder sagen …'); this.refresh(); say(N(st.fr)); },
+    start(st){ this.opts=shuffle(st.options.slice()); this.bad=new Set(); UI.setInputMode('text','Antippen, schreiben oder sagen …'); this.refresh(); sayStep(st); },
     render(st,extra=''){ this.prompt(st,extra);
       UI.chips([...this.opts.map(o=>({cls:'fr ans opt'+(this.bad.has(o)?' bad':''),html:UI.esc(N(o)),onClick:()=>{
           if(norm(o)===norm(st.answer)) this.complete(st,{sayText:st.answer}); else { this.bad.add(o); this.miss(UI.tipLine(`<b class="fr">${UI.esc(o)}</b> passt hier nicht – probier's nochmal!`)); } }})),
@@ -226,7 +262,7 @@ const H = {
   },
 
   fill:{
-    start(st){ UI.setInputMode('text','Ta réponse…'); this.refresh(); say(N(st.fr)); },
+    start(st){ UI.setInputMode('text','Ta réponse…'); this.refresh(); sayStep(st); },
     render(st,extra=''){ this.prompt(st,extra); UI.chips(this.helpChip(st)); },
     input(st,raw){ const r=checkAnswer(raw,st.answer);
       if(r.ok){ this.complete(st,{extra: r.exact?'':UI.tipLine(`😊 <b class="fr">Presque !</b> Richtig ist: <b class="fr">${r.want}</b>`), sayText:r.want}); return true; }
@@ -248,7 +284,7 @@ const H = {
   },
 
   object:{
-    start(st){ UI.setInputMode('text','Parle à {N}…'); this.refresh(); say(N(st.fr)); },
+    start(st){ UI.setInputMode('text','Parle à {N}…'); this.refresh(); sayStep(st); },
     render(st,extra=''){ this.prompt(st,extra); UI.chips(this.helpChip(st)); const key=P.chapter+':'+P.step+':'+this.hint;
       if(!this.solved && this.hint>=this.ladder(st).length && this._pt!==key){ this._pt=key; setTimeout(()=>this.g.cocoPoint?.(st.target),500); } },
     prop(st,p){ if(p.id===st.target){ this.complete(st,{sayText:p.word.fr}); return true; }
