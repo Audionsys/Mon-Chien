@@ -174,12 +174,12 @@ const H = {
   name:{
     start(st){ UI.setInputMode('text',"Name …"); this.refresh(); say("Comment s'appelle ton chien ?"); },
     render(){ UI.coco(`<span class="who">Coco</span><span class="erz">${weave("Dein Hund braucht einen Namen! Schreib ihn unten ins Feld.")}</span><span class="de">Keine Idee? Unten sind französische Hundenamen – daneben steht, was sie bedeuten.</span>`);
-      const ideas=[['Réglisse','Lakritz'],['Nuit','Nacht'],['Filou','Schlingel'],['Biscuit','Keks'],['Noisette','Haselnuss']];
+      const ideas=[['Médor','wie „Bello“'],['Filou','Schlingel'],['Plume','Feder'],['Biscuit','Keks'],['Noisette','Haselnuss']];
       UI.chips([...ideas.map(([n,de])=>({cls:'fr fill',html:`${n} <small>= ${de}</small>`,onClick:()=>{ UI.$('inp').value="Il s'appelle "+n; UI.$('inp').focus(); say(n); }}))]); },
     input(st,raw){
       let n=raw.trim().replace(/^(il|elle)\s*s['’ ]?\s*app?ell?e\s*/i,'').replace(/^(c['’ ]?est|son nom est|mon chien s['’ ]?appelle)\s*/i,'').replace(/[.!?]+$/,'').trim();
       n=n.split(/\s+/).slice(0,2).join(' ').slice(0,16);
-      if(!n||!/[a-zà-ÿ]/i.test(n)){ UI.coco(UI.tipLine("Schreib einfach einen Namen, z. B. <b class=\"fr\">Il s'appelle Réglisse</b>.")); return true; }
+      if(!n||!/[a-zà-ÿ]/i.test(n)){ UI.coco(UI.tipLine("Schreib einfach einen Namen, z. B. <b class=\"fr\">Il s'appelle Médor</b>.")); return true; }
       n=n.charAt(0).toUpperCase()+n.slice(1); const full=/s['’ ]?appell?e/i.test(raw);
       P.name=n; UI.setInputMode('text','Parle à {N}…'); this.g.dog.name(); this.g.fx.hearts(4);
       learn('w:il s appelle',{kind:'word',fr:`Il s'appelle ${n}.`,de:`Er heißt ${n}.`,gram:"s'appeler (heißen) → il s'appelle"},full?2:1);
