@@ -35,7 +35,7 @@ A.preloadMusic('music.mp3');
 function headScreen(){ const p=dog.headWorld(); p.y+=0.22; p.project(world.camera); return {x:(p.x*0.5+0.5)*innerWidth, y:(-p.y*0.5+0.5)*innerHeight}; }
 const fx={ hearts(n=3){ const s=headScreen(); UI.floatFx(s.x,s.y,['❤️','💛','✨','🧡'],n); } };
 dog.on('say',(t,ms)=>UI.dogSay(t,ms)); dog.on('hearts',n=>fx.hearts(n));
-export const VERSION='52';
+export const VERSION='53';
 try{ document.getElementById('ver').textContent='v'+VERSION; }catch(e){}
 function toast(html,ms=2600){ const t=$('toast'); t.innerHTML=N(html); t.classList.add('on'); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('on'),ms); }
 
@@ -308,7 +308,7 @@ document.addEventListener('click',e=>{ if(e.target.closest('#bubble .w')) setTim
 
 // Mikrofon (nur wo der Browser es erlaubt)
 const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-if(SR){ const mic=$('mic'); mic.style.display='block'; let rec=null, last='', alts=[], done=false, stopT=null;
+if(SR){ const mic=$('mic'); mic.style.display='block'; document.body.classList.add('hasMic'); let rec=null, last='', alts=[], done=false, stopT=null;
   const finish=()=>{ if(done) return; done=true; clearTimeout(stopT); const t=(alts.find(a=>parseCommand(a,P.name).type==='ok')||last||'').trim();
     if(t){ inp.value=t; submit(); } else toast('🎤 Ich habe nichts verstanden – sprich deutlich und nah ans Mikro, oder tipp es ein.',3500); };
   mic.onclick=()=>{ if(rec){ try{ rec.stop(); }catch(e){} return; }
@@ -356,11 +356,10 @@ let zoomI=0;
 function layoutBubble(){ requestAnimationFrame(()=>{ const z=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--uiz'))||1;
   // Coco-Blase immer UNTER die Knopfleiste schieben (Notch/Kamera-Loch, Zoom, umgebrochene Leiste)
   let tb=0; $('top').querySelectorAll('*').forEach(el=>{ if(el.parentElement!==$('top')) return; const r=el.getBoundingClientRect(); if(r.height&&r.bottom>tb) tb=r.bottom; });
-  if(tb){ const co0=$('coco'); const want=tb+6; co0.style.top=(want/z)+'px'; const got=co0.getBoundingClientRect().top;
-    // Safari/iPad rechnet "zoom" bei fixed-Elementen anders – gemessen korrigieren
-    if(got>1 && Math.abs(got-want)>2){ const f=got/(want/z); co0.style.top=(want/f)+'px'; } }
-  const bot=$('bottom').getBoundingClientRect(), co=$('coco').getBoundingClientRect();
-  const avail=Math.max(120,(bot.top-co.top-10))/z; document.documentElement.style.setProperty('--bubbleMax',avail+'px');
+  const bot=$('bottom').getBoundingClientRect(); const co0=$('coco');
+  co0.style.bottom=((innerHeight-bot.top+6)/z)+'px';
+  // Karte darf höchstens bis knapp unter die Kopfzeile wachsen, normal ~36% des Bildschirms
+  const avail=Math.max(110,Math.min(innerHeight*0.36,(bot.top-tb-16)))/z; document.documentElement.style.setProperty('--bubbleMax',avail+'px');
   const b=$('bubble'); b.classList.toggle('more', b.scrollHeight>b.clientHeight+4 && b.scrollTop+b.clientHeight<b.scrollHeight-4); }); }
 addEventListener('resize',layoutBubble); document.addEventListener('fullscreenchange',()=>{ layoutBubble(); setTimeout(layoutBubble,400); }); setInterval(layoutBubble,3000);
 // ---------- Kompakte Sprechblase (Handy): klappt nach dem Lesen ein, Tipp klappt auf ----------
@@ -372,7 +371,9 @@ document.getElementById('bubble').addEventListener('click',e=>{ const b=$('bubbl
 // Akzent-Tasten nur beim Tippen
 inp.addEventListener('focus',()=>{ document.body.classList.add('typing'); bubbleMini(); layoutBubble(); });
 inp.addEventListener('blur',()=>setTimeout(()=>{ if(document.activeElement!==inp){ document.body.classList.remove('typing'); layoutBubble(); } },250));
-new MutationObserver(()=>{ $('bubble').scrollTop=0; bubbleOpen(); }).observe(document.getElementById('bubble'),{childList:true});
+new MutationObserver(()=>{ const b=$('bubble'); b.scrollTop=0; b.classList.remove('open');
+  if(b.querySelector('.goal,.how') && !b.querySelector('.xpand')){ const x=document.createElement('button'); x.className='xpand'; x.textContent='⌃ mehr'; x.onclick=(e)=>{ e.stopPropagation(); const o=b.classList.toggle('open'); x.textContent=o?'⌄ weniger':'⌃ mehr'; layoutBubble(); }; b.prepend(x); }
+  bubbleOpen(); }).observe(document.getElementById('bubble'),{childList:true});
 new MutationObserver(layoutBubble).observe(document.getElementById('chips'),{childList:true});
 document.getElementById('bubble').addEventListener('scroll',()=>{ const b=$('bubble'); b.classList.toggle('more', b.scrollTop+b.clientHeight<b.scrollHeight-4); });
 function applyZoom(save=true){ uiz=Math.max(0.85,Math.min(2.2,uiz)); document.documentElement.style.setProperty('--uiz',uiz.toFixed(3)); document.documentElement.style.setProperty('--uizb',Math.min(uiz,innerWidth<480?1.1:1.2).toFixed(3)); layoutBubble(); zoomI=ZOOMS.reduce((bi,z,i)=>Math.abs(z-uiz)<Math.abs(ZOOMS[bi]-uiz)?i:bi,0); if(save) try{ localStorage.setItem('chien_uiz',uiz.toFixed(3)); }catch(e){} }
@@ -395,7 +396,9 @@ const canFS=!!(document.documentElement.requestFullscreen||document.documentElem
 $('musicBtn').onclick=()=>{ A.audioCtx(); $('musicBtn').textContent=A.toggleMusic()?'🎵':'🔇'; };
 $('musicBtn').textContent=A.settings.music?'🎵':'🔇';
 $('treatsBtn').onclick=()=>openShop('coffre'); $('chap').style.cursor='pointer'; $('chap').onclick=()=>{ A.sfx.tap?.(); openChapters(); }; $('heartBtn').onclick=()=>{ A.sfx.tap(); openFriends(); }; renderHearts();
-$('carnetBtn').onclick=()=>{ openCarnet(); run.event('carnet'); }; $('menuBtn').onclick=openMenu; $('chap').onclick=()=>openMap();
+$('carnetBtn').onclick=()=>{ openCarnet(); run.event('carnet'); }; $('menuBtn').onclick=openMenu; $('chap').onclick=()=>openMap(); $('progress').onclick=()=>{ A.sfx.tap?.(); openChapters(); };
+inp.addEventListener('input',()=>document.body.classList.toggle('hasText',!!inp.value.trim())); new MutationObserver(()=>{}).observe(inp,{attributes:true}); setInterval(()=>document.body.classList.toggle('hasText',!!inp.value.trim()),400);
+try{ if(localStorage.getItem('chien_pulse')!=='1'){ localStorage.setItem('chien_pulse','1'); setTimeout(()=>{ $('inp').classList.add('pulse'); $('helpBtn').classList.add('pulse'); $('mic').classList.add('pulse'); },2500); } }catch(e){}
 $('sheetClose').onclick=()=>UI.closeSheet(); $('sheetX').onclick=()=>UI.closeSheet();
 $('sheet').addEventListener('click',e=>{ if(e.target===$('sheet')) UI.closeSheet(); }); // Tipp neben das Fenster schließt
 // Zurück-Taste: erst Fenster schließen, im Spiel nachfragen statt die Seite zu verlassen
@@ -431,7 +434,7 @@ function openDecks(){
 }
 function openMenu(){
   let h=testMode?`<p class="sub" style="background:#fff1c9;border-radius:10px;padding:6px 9px">🧪 <b>Testmodus aktiv</b> – alle Kapitel offen. Vor dem Zug ausschalten!</p>`:'';
-  h+=`<div class="menutiles"><button id="chapBtnM"><span>🗺️</span><b>Kapitel</b><small>Lernreise & Kapitel wählen</small></button><button id="deckBtnM"><span>📚</span><b>Vokabeln</b><small>mit {N} üben</small></button><button id="badgeBtnM"><span>🏆</span><b>Abzeichen</b><small>${BADGES.filter(b=>(P.badges||{})[b.id]).length}/${BADGES.length}</small></button></div>`;
+  h+=`<div class="menutiles"><button id="chapBtnM"><span>🗺️</span><b>Kapitel</b><small>Lernreise & Kapitel wählen</small></button><button id="deckBtnM"><span>📚</span><b>Vokabeln</b><small>mit {N} üben</small></button><button id="badgeBtnM"><span>🏆</span><b>Abzeichen</b><small>${BADGES.filter(b=>(P.badges||{})[b.id]).length}/${BADGES.length}</small></button></div><div class="menutiles two"><button id="carnetBtnM"><span>📖</span><b>Carnet</b><small>Mein Vokabelheft</small></button><button id="shopBtnM"><span>🦴</span><b>Schatzkiste</b><small>${P.treats} Knochen</small></button><button id="zoomBtnM"><span>Aa</span><b>Textgröße</b><small>größer / kleiner</small></button></div>`;
   h=N(h);
   h+=`<h3>Einstellungen</h3>
     <label class="set">🎵 Musik <input type="checkbox" id="setMusic" ${A.settings.music?'checked':''}></label>
@@ -453,7 +456,7 @@ function openMenu(){
     <button class="row" id="backupBtn"><b>🕘 Automatische Sicherungen</b><small>Nach jedem Kapitel wird gesichert</small></button>
     <h3>Für Eltern</h3>
     <a class="row" href="https://paypal.me/Audionsys" target="_blank" rel="noopener" style="text-decoration:none;color:inherit;display:block"><b>💛 Audionsys unterstützen</b><small>Gefällt euch das Spiel? Kleine Spende über PayPal – paypal.me/Audionsys</small></a>
-    <button class="row" id="aboutBtn"><b>ℹ️ Über das Spiel & Credits</b><small>Audionsys · Unterstützen</small></button>
+    <button class="row" id="aboutBtn"><b>ℹ️ Über das Spiel & Credits</b><small>Audionsys · Unterstützen</small></button><p class="vermenu">Version ${VERSION}</p>
     <button class="row" id="weekBtn"><b>📅 Wochenrückblick</b><small>Für Eltern: geübt, neu gelernt, wackelt noch</small></button>
     <button class="row" id="resBtn"><b>📊 Ergebnisse der Hundeshows</b><small>Mini-Tests pro Kapitel</small></button>
     <button class="row" id="solBtn"><b>🔑 Alle Lösungen anzeigen</b><small>Übersicht pro Kapitel</small></button>
@@ -461,7 +464,7 @@ function openMenu(){
     ${testMode?`<button class="row" id="tJump"><b>🧪 Zu Aufgabe springen</b><small>Aktuelles Kapitel</small></button><button class="row" id="tMis"><b>🧪 Quatsch auslösen</b><small>Hund macht sofort Unsinn</small></button><button class="row" id="tDefi"><b>🧪 Hundeshow starten</b><small>Mini-Test dieses Kapitels</small></button>`:''}
     <button class="row" id="resetBtn"><b>🗑️ Spielstand löschen</b><small>Neuer Hund, alles von vorn</small></button>`;
   UI.openSheet('☰ Menü', h, {onOpen:b=>{
-    b.querySelector('#chapBtnM').onclick=openChapters; b.querySelector('#deckBtnM').onclick=openDecks; b.querySelector('#badgeBtnM').onclick=()=>openBadges();
+    b.querySelector('#chapBtnM').onclick=openChapters; b.querySelector('#deckBtnM').onclick=openDecks; b.querySelector('#badgeBtnM').onclick=()=>openBadges(); b.querySelector('#carnetBtnM').onclick=()=>{ openCarnet(); run.event('carnet'); }; b.querySelector('#shopBtnM').onclick=()=>openShop('coffre'); b.querySelector('#zoomBtnM').onclick=()=>$('zoomBtn').click();
     b.querySelector('#setMusic').onchange=e=>{ A.audioCtx(); if(e.target.checked!==A.settings.music){ $('musicBtn').textContent=A.toggleMusic()?'🎵':'🔇'; } };
     b.querySelectorAll('[data-z]').forEach(x=>x.onclick=()=>{ uiz=ZOOMS[+x.dataset.z]; applyZoom(); openMenu(); });
     const fb=b.querySelector('#fsBtn'); if(fb) fb.onclick=()=>{ UI.closeSheet(); if(IOS) iosHint(true); else goFullscreen(); };
@@ -631,7 +634,7 @@ function frame(now){
   if(titleCam){ const t=performance.now()/1000, por=innerWidth<innerHeight, r=por?2.3:1.9, a=Math.sin(t*0.25)*0.55; const dp2=dog.root.position; cam.position.set(dp2.x+Math.sin(a)*r, 0.75, dp2.z+Math.cos(a)*r); cam.lookAt(dp2.x, por?0.62:0.5, dp2.z); }
   // Hund in die freie Lücke zwischen Sprechblase und Knöpfen rücken
   if(!titleCam && started){ freeT-=dt; if(freeT<=0){ freeT=0.25; const W=innerWidth,H=innerHeight; const cb=$('coco').getBoundingClientRect(), bb=$('bottom').getBoundingClientRect(); const land=W>H && H<520;
-      const top= land? 60 : Math.min(cb.bottom, H*0.6), bot=Math.max(top+80,bb.top), left= land? cb.right : 0;
+      const tbar=$('top').getBoundingClientRect().bottom||60; const cardTop=(cb.height>10?cb.top:bb.top); const top= land? 60 : tbar, bot=Math.max(top+80,Math.min(cardTop,bb.top)), left= land? cb.right : 0;
       freeGoal.x=-(((left+W)/2)-W/2); freeGoal.y=-(((top+bot)/2)-H/2)*0.9; } }
   else { freeGoal.x=0; freeGoal.y=0; }
   freeOff.x+=(freeGoal.x-freeOff.x)*Math.min(1,dt*3); freeOff.y+=(freeGoal.y-freeOff.y)*Math.min(1,dt*3);

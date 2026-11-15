@@ -58,8 +58,8 @@ export class Runner {
     else t.innerHTML=`<span class="long">Chapitre </span>${P.chapter+1} · ${N(ch.titre)}<small>Kapitel ${P.chapter+1} · ${N(ch.titel)}</small>`;
     const pr=UI.$('progress'); pr.innerHTML='';
     const list=this.review?this.review.steps:(this.freeplay?[]:ch.steps); const cur=this.review?this.review.i:P.step;
-    pr.innerHTML=`<span class="pbar"><i style="width:${list.length?Math.round(cur/list.length*100):0}%"></i></span><small>${Math.min(cur+1,list.length)}/${list.length}</small>`;
-    pr.style.display=list.length?'flex':'none';
+    const lbl=this.review?'Révision · Wiederholung':(this.freeplay||!ch)?'Jeu libre · Freies Spiel':`${P.chapter+1} · ${N(ch.titre)}`;
+    pr.innerHTML=`<span class="plabel">${UI.esc(lbl)}</span><span class="prow"><span class="pbar"><i style="width:${list.length?Math.round(cur/list.length*100):0}%"></i></span>${list.length?`<small>${Math.min(cur+1,list.length)}/${list.length}</small>`:''}</span>`;
     UI.$('treats').textContent=P.treats;
   }
 
@@ -187,8 +187,8 @@ const H = {
     start(st){ UI.setInputMode('text'); this.refresh(); say(N(st.fr)); },
     render(st){ const u=this.chapter?.unite; UI.coco(`<span class="tutostep">Chapitre ${P.chapter+1}${u?` · 📘 ${/\d/.test(u)?'Unité '+u:u}`:''}</span>${UI.frLine(st.fr)}<span class="goal">🎯 <b>Darum geht's:</b> ${N(st.ziel)}</span>${st.tipp?`<span class="how">💬 ${N(st.tipp)}</span>`:''}`,{chirp:true});
       const W=chapterWords(this.chapter);
-      UI.chips([...(W.length?[{cls:'fr',html:`👀 Neue Wörter <small>${W.length}</small>`,onClick:()=>showWords(this.chapter)}]:[]),{cls:'sol',html:"C'est parti ➜",onClick:()=>{ this.solved=true; this.next(); }}]);
-      if(W.length && !(P.seenWords||{})[this.chapter.id]) setTimeout(()=>{ if(this.step?.type==='intro') showWords(this.chapter); },1600); },
+      if(W.length){ const b=UI.$('bubble'); b.insertAdjacentHTML('beforeend',`<button class="wlink" id="wlink">👀 ${W.length} neue Wörter ansehen</button>`); UI.$('wlink').onclick=(e)=>{ e.stopPropagation(); showWords(this.chapter); }; }
+      UI.chips([{cls:'sol',html:"C'est parti ➜",onClick:()=>{ this.solved=true; this.next(); }}]); },
   },
   dialogue:{
     start(st){ this.line=0; UI.setInputMode('text'); this.refresh(); say(N(st.lines[0].fr)); },
