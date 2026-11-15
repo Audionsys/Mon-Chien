@@ -36,7 +36,7 @@ A.preloadMusic('music.mp3');
 function headScreen(){ const p=dog.headWorld(); p.y+=0.22; p.project(world.camera); return {x:(p.x*0.5+0.5)*innerWidth, y:(-p.y*0.5+0.5)*innerHeight}; }
 const fx={ hearts(n=3){ const s=headScreen(); UI.floatFx(s.x,s.y,['❤️','💛','✨','🧡'],n); } };
 dog.on('say',(t,ms)=>UI.dogSay(t,ms)); dog.on('hearts',n=>fx.hearts(n));
-export const VERSION='55';
+export const VERSION='56';
 try{ document.getElementById('ver').textContent='v'+VERSION; }catch(e){}
 function toast(html,ms=2600){ const t=$('toast'); t.innerHTML=N(html); t.classList.add('on'); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('on'),ms); }
 
@@ -306,7 +306,7 @@ document.addEventListener('keydown',e=>{
 });
 inp.addEventListener('input',()=>{ if(/\n/.test(inp.value)){ inp.value=inp.value.replace(/\n/g,''); submit(); } });
 // Tastatur auf dem Handy: Eingabezeile über die Tastatur schieben (im Vollbild legt sich die Tastatur sonst darüber)
-if(window.visualViewport){ const vv=visualViewport; const kb=()=>{ if(IOS && (scrollY||document.documentElement.scrollTop)) scrollTo(0,0); const h=Math.max(0, innerHeight-vv.height-vv.offsetTop); $('bottom').style.bottom= h>60? h+'px' : ''; layoutBubble(); };
+if(window.visualViewport){ const vv=visualViewport; const kb=()=>{ if(IOS && (scrollY||document.documentElement.scrollTop)) scrollTo(0,0); const h=Math.max(0, innerHeight-vv.height-vv.offsetTop); $('bottom').style.bottom= h>1? h+'px' : ''; layoutBubble(); };
   vv.addEventListener('resize',kb); vv.addEventListener('scroll',kb); }
 document.querySelectorAll('#accents button').forEach(b=>b.addEventListener('pointerdown',e=>{ e.preventDefault(); const c=b.dataset.c; const s=inp.selectionStart??inp.value.length; inp.value=inp.value.slice(0,s)+c+inp.value.slice(inp.selectionEnd??s); inp.setSelectionRange(s+1,s+1); }));
 UI.initGloss();
@@ -372,7 +372,7 @@ addEventListener('resize',layoutBubble); document.addEventListener('fullscreench
 const small=()=>Math.min(innerWidth,innerHeight)<600;
 let miniT=null;
 function bubbleOpen(){ const b=$('bubble'); b.classList.remove('mini'); clearTimeout(miniT); layoutBubble(); }
-function bubbleMini(){ if(!small()) return; const b=$('bubble'); if(b.querySelector('.newword,.build,.medal')) return; b.classList.add('mini'); layoutBubble(); }
+function bubbleMini(){ if(!small()) return; const b=$('bubble'); if(b.querySelector('.newword,.build,.medal')) return; b.classList.add('mini'); b.scrollTop=0; layoutBubble(); }
 document.getElementById('bubble').addEventListener('click',e=>{ const b=$('bubble'); if(b.classList.contains('mini')){ e.stopPropagation(); bubbleOpen(); } },true);
 // Akzent-Tasten nur beim Tippen
 inp.addEventListener('focus',()=>{ document.body.classList.add('typing'); bubbleMini(); layoutBubble(); });
