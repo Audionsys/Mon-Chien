@@ -161,7 +161,7 @@ const H = {
     start(st){ UI.setInputMode('text',"Il s'appelle…"); this.refresh(); say("Voici ton nouveau chien ! Comment s'appelle ton chien ?"); },
     render(){ UI.coco(`${UI.frLine("Voici ton nouveau chien ! Comment s'appelle ton chien ?")}${UI.deLine('Hier ist dein neuer Hund! Wie heißt er? Gib ihm einen Namen – oder nimm einen Vorschlag.')}${UI.tipLine("Antworte so: <b class=\"fr\">Il s'appelle …</b> (= Er heißt …)")}`);
       const ideas=[['Réglisse','Lakritz'],['Nuit','Nacht'],['Filou','Schlingel'],['Biscuit','Keks'],['Noisette','Haselnuss']];
-      UI.chips([{html:'🐶 Anderer Hund?',onClick:()=>this.g.openDogs?.()}, ...ideas.map(([n,de])=>({cls:'fr',html:`${n} <small>${de}</small>`,onClick:()=>{ UI.$('inp').value="Il s'appelle "+n; UI.$('inp').focus(); say(n); }}))]); },
+      UI.chips([{html:'🐶 Anderer Hund?',onClick:()=>this.g.openDogs?.()}, ...ideas.map(([n,de])=>({cls:'fr fill',html:`${n} <small>${de}</small>`,onClick:()=>{ UI.$('inp').value="Il s'appelle "+n; UI.$('inp').focus(); say(n); }}))]); },
     input(st,raw){
       let n=raw.trim().replace(/^(il|elle)\s*s['’ ]?\s*app?ell?e\s*/i,'').replace(/^(c['’ ]?est|son nom est|mon chien s['’ ]?appelle)\s*/i,'').replace(/[.!?]+$/,'').trim();
       n=n.split(/\s+/).slice(0,2).join(' ').slice(0,16);
@@ -180,7 +180,7 @@ const H = {
         UI.chips([{cls:'sol',html:'Weiter ➜',onClick:()=>this.next()}]); };
       setTimeout(()=>{ if(P.gender) return; UI.coco(`${UI.frLine(`${n}, c'est un chien ou une chienne ?`)}${UI.deLine(`Ist ${n} ein Junge (Rüde) oder ein Mädchen (Hündin)?`)}`); say(`${n}, c'est un chien ou une chienne ?`); },3200);
       P.gender=null;
-      UI.chips([{cls:'sol fr',html:"♂ C'est un chien.",onClick:()=>pickG('m')},{cls:'sol fr',html:"♀ C'est une chienne.",onClick:()=>pickG('f')}]); return true; },
+      UI.chips([{cls:'sol fr ans',html:"♂ C'est un chien.",onClick:()=>pickG('m')},{cls:'sol fr ans',html:"♀ C'est une chienne.",onClick:()=>pickG('f')}]); return true; },
   },
 
   intro:{
@@ -218,9 +218,9 @@ const H = {
   },
 
   choice:{
-    start(st){ this.opts=shuffle(st.options.slice()); this.bad=new Set(); UI.setInputMode('none'); this.refresh(); say(N(st.fr)); },
+    start(st){ this.opts=shuffle(st.options.slice()); this.bad=new Set(); UI.setInputMode('text','Antippen, schreiben oder sagen …'); this.refresh(); say(N(st.fr)); },
     render(st,extra=''){ this.prompt(st,extra);
-      UI.chips([...this.opts.map(o=>({cls:'fr opt'+(this.bad.has(o)?' bad':''),html:UI.esc(N(o)),onClick:()=>{
+      UI.chips([...this.opts.map(o=>({cls:'fr ans opt'+(this.bad.has(o)?' bad':''),html:UI.esc(N(o)),onClick:()=>{
           if(norm(o)===norm(st.answer)) this.complete(st,{sayText:st.answer}); else { this.bad.add(o); this.miss(UI.tipLine(`<b class="fr">${UI.esc(o)}</b> passt hier nicht – probier's nochmal!`)); } }})),
         ...this.helpChip(st)]); },
   },
@@ -302,7 +302,7 @@ teach:{
   },
 
   listen:{
-    start(st){ this.opts=shuffle(st.options.slice()); this.bad=new Set(); UI.setInputMode('none'); this.refresh(); setTimeout(()=>say(st.answer,{rate:0.8,word:true}),350); },
+    start(st){ this.opts=shuffle(st.options.slice()); this.bad=new Set(); UI.setInputMode('text','Antippen, schreiben oder sagen …'); this.refresh(); setTimeout(()=>say(st.answer,{rate:0.8,word:true}),350); },
     render(st,extra=''){ this.prompt(st,extra);
       UI.chips([{cls:'sol',html:'🔊 Nochmal hören',onClick:()=>say(st.answer,{rate:0.75,word:true})},
         ...this.opts.map(o=>({cls:'fr opt'+(this.bad.has(o)?' bad':''),html:UI.esc(N(o)),onClick:()=>{

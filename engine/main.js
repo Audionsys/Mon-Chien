@@ -7,6 +7,7 @@ import { P, save, reset, items, exportCode, importCode, parseCode, snapshots, sn
 import { COURSE as _C } from '../content/course.js';
 attachCourse(_C.chapters);
 import { parseCommand } from './lang.js';
+import * as L from './lang.js';
 import { COMMANDS } from '../content/commands.js';
 import { COURSE } from '../content/course.js';
 import { WORLD } from '../content/world.js';
@@ -36,7 +37,7 @@ A.preloadMusic('music.mp3');
 function headScreen(){ const p=dog.headWorld(); p.y+=0.22; p.project(world.camera); return {x:(p.x*0.5+0.5)*innerWidth, y:(-p.y*0.5+0.5)*innerHeight}; }
 const fx={ hearts(n=3){ const s=headScreen(); UI.floatFx(s.x,s.y,['❤️','💛','✨','🧡'],n); } };
 dog.on('say',(t,ms)=>UI.dogSay(t,ms)); dog.on('hearts',n=>fx.hearts(n));
-export const VERSION='56';
+export const VERSION='57';
 try{ document.getElementById('ver').textContent='v'+VERSION; }catch(e){}
 function toast(html,ms=2600){ const t=$('toast'); t.innerHTML=N(html); t.classList.add('on'); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('on'),ms); }
 
@@ -282,8 +283,15 @@ g.busy=()=>!!MIS.active||ADV.active;
 
 // ---------- Eingabe ----------
 const inp=$('inp');
+// Was auf einem französischen Antwort-Knopf steht, darf man auch schreiben oder sagen
+function chipSpoken(raw){ const s=L.norm(raw); if(!s) return false; const cand=[];
+  for(const b of document.querySelectorAll('#chips .chip.ans')){ const c=b.cloneNode(true); c.querySelectorAll('small').forEach(x=>x.remove()); const lab=L.norm(c.textContent); if(!lab) continue;
+    const r=L.checkAnswer(raw,[lab]); const part=s.length>=4 && (' '+lab+' ').includes(' '+s+' ');
+    if(r.ok||part) cand.push({b,exact:r.exact||s===lab}); }
+  const pick=cand.find(c=>c.exact)||(cand.length===1?cand[0]:null); if(!pick) return false; pick.b.click(); return true; }
 function submit(){ const raw=inp.value.trim(); if(!raw) return; inp.value=''; A.audioCtx(); A.sfx.tap(); bump(); if(MIS.active) return mischiefInput(raw);
   if(pendingGive && /^(tiens|tenez|voila|voici|c est pour toi|pour toi|mange)/.test(raw.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/'/g,' '))){ feed(); return; }
+  if(chipSpoken(raw)) return;
   if(ADV.active){ if(!ADV.input(raw)) g.freeCommand(raw); return; }
   if(tryToyFetch(raw)) return; run.input(raw); }
 $('send').onclick=submit;
@@ -620,6 +628,10 @@ function openSolutions(){
 // ---------- Loop ----------
 const camT=new THREE.Vector3(0,0.3,0.2); let titleCam=false; let freeT=0; const freeGoal={x:0,y:0}, freeOff={x:0,y:0};
 let lastW=0,lastH=0;
+// Nach App-Wechsel: Grafik-Kontext kann verloren gehen → sauber neu laden (Spielstand ist gespeichert)
+{ const cv=world.renderer.domElement; cv.addEventListener('webglcontextlost',e=>{ e.preventDefault(); },false); cv.addEventListener('webglcontextrestored',()=>{ try{ save(); }catch(e){} location.reload(); },false);
+  const back=()=>{ if(document.hidden) return; lastW=0; resize(); applyZoom(false); layoutBubble(); world.renderer.shadowMap.needsUpdate=true; const gl=world.renderer.getContext(); if(gl.isContextLost&&gl.isContextLost()) setTimeout(()=>{ if(gl.isContextLost()) location.reload(); },1500); };
+  document.addEventListener('visibilitychange',back); addEventListener('pageshow',back); addEventListener('focus',back); }
 function resize(){ const cv=world.renderer.domElement; const w=Math.round(cv.clientWidth||innerWidth), h=Math.round(cv.clientHeight||innerHeight); if(w===lastW&&h===lastH) return; lastW=w; lastH=h; world.renderer.setSize(w,h,false); world.camera.aspect=w/h; world.camera.fov=w<h?48:38; world.camera.updateProjectionMatrix(); }
 addEventListener('resize',()=>{ resize(); setTimeout(resize,350); setTimeout(resize,900); }); resize();
 for(const ev of ['fullscreenchange','webkitfullscreenchange','orientationchange']) document.addEventListener(ev,()=>{ setTimeout(resize,300); setTimeout(resize,900); });

@@ -88,7 +88,7 @@ export function createAdventure(api){
     const r=parseCommand(raw,P.name);
     if(r.type==='ok'||r.type==='close'){ const id=r.id;
       if(id==='beau'){ api.dog.doRaw({do:'trick',id:'beau'}); setTimeout(()=>{ npcSay('boucher',"Oh, qu'il est mignon ! Tu as faim ?",'Oh, ist der süß! Hast du Hunger?'); S.phase='hungry';
-          prompt(`${UI.frLine('Tu as faim ?')}<span class="welcome">Der Metzger fragt, ob {N} Hunger hat. Antworte für {N}!</span>`,[{cls:'fr',html:'Oui !',onClick:()=>input('oui')},{cls:'fr',html:'Non !',onClick:()=>input('non')}]); },1600); return true; }
+          prompt(`${UI.frLine('Tu as faim ?')}<span class="welcome">Der Metzger fragt, ob {N} Hunger hat. Antworte für {N}!</span>`,[{cls:'fr ans',html:'Oui !',onClick:()=>input('oui')},{cls:'fr ans',html:'Non !',onClick:()=>input('non')}]); },1600); return true; }
       if(id==='aboie'){ api.dog.do(COMMANDS.aboie.action); setTimeout(()=>{ prop('cliente').object.userData.hop=1; npcSay('cliente','Aaah ! Au secours ! Un chien !','Aaah! Hilfe! Ein Hund!'); },700);
         setTimeout(()=>npcSay('boucher','Hé ! Dehors, le chien !','He! Raus mit dem Hund!'),3000); setTimeout(()=>win('aboyer','La cliente a lâché son sac… et la saucisse !'),4200); return true; }
       api.dog.do(COMMANDS[id].action); api.toast(`<b class="fr">${COMMANDS[id].fr}</b> = ${COMMANDS[id].de}`); return true; }
