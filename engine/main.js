@@ -38,7 +38,7 @@ A.preloadMusic('music.mp3');
 function headScreen(){ const p=dog.headWorld(); p.y+=0.22; p.project(world.camera); return {x:(p.x*0.5+0.5)*innerWidth, y:(-p.y*0.5+0.5)*innerHeight}; }
 const fx={ hearts(n=3){ const s=headScreen(); UI.floatFx(s.x,s.y,['❤️','💛','✨','🧡'],n); } };
 dog.on('say',(t,ms)=>UI.dogSay(t,ms)); dog.on('hearts',n=>fx.hearts(n));
-export const VERSION='62';
+export const VERSION='63';
 try{ document.getElementById('ver').textContent='v'+VERSION; }catch(e){}
 function toast(html,ms=2600){ const t=$('toast'); t.innerHTML=N(html); t.classList.add('on'); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('on'),ms); }
 
@@ -580,11 +580,12 @@ function startExam(){ run.startGram('exam',examLesson()); }
 function openGram(){
   const G=P.gram||{};
   let h=`<p class="sub">Kurze Lektionen mit Coco: erst erklären, dann üben. Für die Schulaufgabe am besten <b>alle der Reihe nach</b>, danach den <b>Schulaufgaben-Mix</b> so oft wie möglich.</p>`;
-  const ex=(P.exams||[]).slice(-5); h+=`<button class="row" id="gexam" style="background:#ffe1e1"><b>📝 Probe-Schulaufgabe</b><small>26 Aufgaben, jedes Mal neu gemischt · mit Note${ex.length?` · zuletzt: ${ex.map(e=>e.n).join(', ')}`:''}</small></button>`;
+  const ex=(P.exams||[]).slice(-5); h+=`<button class="row" id="gexam" style="background:#ffe1e1"><b>📝 Probe-Schulaufgabe</b><small>29 Aufgaben, jedes Mal neu gemischt · mit Note${ex.length?` · zuletzt: ${ex.map(e=>e.n).join(', ')}`:''}</small></button>`;
+  h+=`<div class="menutiles"><button data-rap="er"><span>🎤</span><b>-er-Rap</b><small>E – ES – E …</small></button><button data-rap="etre"><span>🎤</span><b>être-Rap</b><small>suis, es, est …</small></button><button data-rap="avoir"><span>🎤</span><b>avoir-Rap</b><small>ai, as, a …</small></button></div>`;
   h+=`<button class="row" id="gmix" style="background:#fff1c9"><b>💪 Schulaufgaben-Mix</b><small>14 gemischte Aufgaben ohne Erklärung – wie in der Prüfung</small></button>`;
   for(const id in GRAM){ const l=GRAM[id]; h+=`<button class="row" data-g="${id}"><b>${l.icon} ${esc(l.titel)} ${G[id]?'✅'+(G[id]>1?' ×'+G[id]:''):''}</b><small>${esc(l.titre)} · ${l.steps.length} Schritte</small></button>`; }
   UI.openSheet('📘 Grammatik-Trainer', h, {onOpen:b=>{ b.querySelector('#gexam').onclick=()=>{ UI.closeSheet(); startExam(); }; b.querySelector('#gmix').onclick=()=>{ UI.closeSheet(); run.startGram('mix',mixLesson(14)); };
-    b.querySelectorAll('[data-g]').forEach(x=>x.onclick=()=>{ UI.closeSheet(); run.startGram(x.dataset.g); }); }});
+    b.querySelectorAll('[data-g]').forEach(x=>x.onclick=()=>{ UI.closeSheet(); run.startGram(x.dataset.g); }); b.querySelectorAll('[data-rap]').forEach(x=>x.onclick=()=>{ UI.closeSheet(); run.rapCard(x.dataset.rap); }); }});
 }
 function openDogs(){
   UI.openSheet('🐶 Welcher Hund?', `<p class="sub">Such dir einen Hund aus! Name, Fortschritt, Herzen und Sachen bleiben gleich – nur das Aussehen ändert sich.</p>

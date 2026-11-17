@@ -7,6 +7,7 @@ import { parseCommand, checkAnswer, missingAccent, norm } from './lang.js';
 import { P, save, learn, dueItems, snapshot } from './progress.js';
 import { say, sfx } from './audio.js';
 import * as UI from './ui.js';
+import { RAPS, playRap, stopRap, isRapping } from './rap.js';
 const { N } = UI;
 const shuffle=a=>a.map(x=>[Math.random(),x]).sort((p,q)=>p[0]-q[0]).map(x=>x[1]);
 const cmdKey=id=>'cmd:'+id;
@@ -96,6 +97,10 @@ export class Runner {
       this.refresh(acc); return; }
     this.cTry++; sfx.soft_no(); this.g.dog.tilt(); learn('g:'+st.verb+':'+f[0],{kind:'word',fr:`${f[0]}${f[0].endsWith("'")?'':' '}${f[1]}`,de:f[2]||st.verb,gram:st.verb},0);
     this.refresh(UI.tipLine(this.cTry>=2? `Richtig ist: <b class="fr">${UI.esc(f[0])} ${UI.esc(f[1])}</b> – tipp/schreib es ab!` : `Nicht ganz – schau noch mal genau hin!`)); }
+  rapCard(id,back){ const R=RAPS[id]; const draw=cur=>UI.coco(`<span class="who">🎤 ${UI.esc(R.title)}</span>${R.lines.map((l,i)=>`<span class="rapl${i===cur?' on':''}">${l.map(([lg,t,sh])=>lg==='fr'?`<b class="fr">${UI.esc(t)}</b>`:sh?`<b style="color:#e07b39">${UI.esc(sh)}</b>`:UI.esc(t)).join(' ')}</span>`).join('')}`,{chirp:false});
+    const done=()=>{ if(back&&this.step===back){ this.refresh(); } };
+    draw(-1); UI.chips([{cls:'sol',html:'⏹ Stopp',onClick:()=>{ stopRap(); }},{html:'🔁 Nochmal',onClick:()=>{ stopRap(); this.rapCard(id,back); }}]);
+    playRap(id,{rounds:2,onLine:i=>{ draw(i); setTimeout(()=>document.querySelector('#bubble .rapl.on')?.scrollIntoView({block:'nearest'}),30); this.g.dog?.happy?.(500); },onEnd:()=>{ if(back) setTimeout(done,50); else { UI.chips([{cls:'sol',html:'🔁 Nochmal',onClick:()=>this.rapCard(id)},{html:'📘 Grammatik',onClick:()=>this.g.openGram?.()}]); } }}); }
   startGram(id,list){ const L=list||GRAM[id]; this.freeplay=false; this.review={steps:L.steps,i:0,gram:id,title:L.titre,exam:!!L.exam}; UI.closeSheet?.(); this.begin(); }
   miss(extra){ if(Math.random()<0.4) setTimeout(()=>this.g.quip?.('oops'),2200); this.wrong++; this.hint=Math.min(this.ladder(this.step).length, Math.max(this.hint, 1) + (this.wrong>1?1:0)); sfx.soft_no(); this.refresh(extra); }
 
@@ -279,6 +284,11 @@ const H = {
       const r=checkAnswer(raw,[N(it.fr)]); this.rAnswer(st,r.ok); return true; },
   },
 
+  rapstep:{
+    start(st){ UI.setInputMode('none'); this.solved=true; this.refresh(); },
+    render(st,extra=''){ UI.coco(`<span class="erz">${weave(st.erz||'Hör dir den Rap an – und rap mit! 🎤')}</span>${extra}`,{chirp:false});
+      UI.chips([{cls:'sol',html:'🎤 Rap abspielen',onClick:()=>this.rapCard(st.rap,st)},{html:'Weiter ➜',onClick:()=>{ stopRap(); this.next(); }}]); },
+  },
   // Konjugation auswendig lernen: Tabelle ansehen → per Antippen → selbst schreiben
   conj:{
     start(st){ this.cRows=st.forms.map((f,i)=>i); this.cDone=[]; this.cPhase= st.phase||'look'; this.cTry=0;
@@ -290,7 +300,8 @@ const H = {
     render(st,extra=''){ const cur=this.cRows[this.cDone.length];
       const head=`<span class="erz">${weave(st.erz||'')}</span>`;
       if(this.cPhase==='look'){ UI.coco(`${head}${H.conj.table.call(this,st,-1)}${st.tip?UI.tipLine(st.tip):''}${extra}`,{chirp:false});
-        UI.chips([{html:'🔊 Vorlesen',onClick:()=>say(st.forms.map(f=>f[0].replace(/'$/,'')+(f[0].endsWith("'")?'':' ')+f[1]).join(', '))},{cls:'sol',html:'Gemerkt? Teste dich ➜',onClick:()=>{ this.cPhase='pick'; this.refresh(); }}]); return; }
+        const rapId=st.rap||({parler:'er',jouer:'er',aimer:'er',écouter:'er','être':'etre',avoir:'avoir'})[st.verb];
+        UI.chips([...(rapId?[{html:'🎤 Rap',onClick:()=>this.rapCard(rapId,st)}]:[]),{html:'🔊 Vorlesen',onClick:()=>say(st.forms.map(f=>f[0].replace(/'$/,'')+(f[0].endsWith("'")?'':' ')+f[1]).join(', '))},{cls:'sol',html:'Gemerkt? Teste dich ➜',onClick:()=>{ this.cPhase='pick'; this.refresh(); }}]); return; }
       const f=st.forms[cur];
       UI.coco(`<span class="erz">${this.cPhase==='pick'?'Tippe die richtige Form an:':'Jetzt ohne Hilfe – schreib die Form:'} <b>${UI.esc(f[0])} ___</b>${f[2]?` <i>(${UI.esc(f[2])})</i>`:''}</span>${H.conj.table.call(this,st,cur)}${extra}`,{chirp:false});
       setTimeout(()=>document.querySelector('#bubble table.conj tr.cur')?.scrollIntoView({block:'nearest'}),30);

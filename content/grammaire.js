@@ -24,6 +24,7 @@ export const GRAM = {
       'Man streicht das «-er» weg – übrig bleibt der Stamm: parl-er → «parl». Und dann hängt man eine Endung dran, je nachdem WER etwas tut. Genau wie im Deutschen: ich spiel<b>e</b>, du spiel<b>st</b>!',
       'Die Endungen sind immer dieselben: <b>-e, -es, -e, -ons, -ez, -ent</b>. Merkspruch: „<b>E – ES – E, ONS – EZ – ENT</b>“. Sag ihn dreimal laut, wie einen Rap! 🎤',
       'Und das Gemeine: <b>-e, -es, -e</b> und <b>-ent</b> hört man gar nicht! «je parle», «tu parles», «ils parlent» klingen alle gleich: „parl“. Darum muss man sie beim Schreiben auswendig wissen.'),
+    { type:'rapstep', rap:'er', erz:'Hier ist der <b>-er-Rap</b>! Mach den Ton an, hör zu – und rap beim zweiten Mal mit. 🎤' },
     { type:'conj', verb:'parler', erz:'So sieht «parler» (sprechen) aus. Die Endungen sind <b>fett</b> markiert – lies die Tabelle in Ruhe und lass sie dir vorlesen.', forms:ER('parl',['spreche','sprichst','spricht','sprecht'],'sprechen').map(f=>[f[0],f[1],f[2]]), tip:'Stamm <b>parl</b> + Endung: -e · -es · -e · -ons · -ez · -ent' },
     C('Welche Endung gehört zu <b>tu</b> (du)?','tu jou___',['es','e','ez','ons'],'es',{de:'du spielst',full:'tu joues',note:'tu → <b>-es</b> (wie im Deutschen das -st: du spiel<b>st</b>)'}),
     C('Welche Endung gehört zu <b>nous</b> (wir)?','nous jou___',['ons','ent','ez','es'],'ons',{full:'nous jouons',note:'nous → <b>-ons</b> · Eselsbrücke: n<b>o</b>us – <b>o</b>ns'}),
@@ -61,6 +62,7 @@ export const GRAM = {
   etre: { icon:'⭐', titre:'Le verbe être', titel:'être (sein)', steps:[
     D('«être» heißt <i>sein</i>. Es ist unregelmäßig – also kein Trick, nur Auswendiglernen. Aber es ist so wichtig, dass es sich lohnt!',
       'Merkhilfe: «je suis» (ich bin) · «tu es» (du bist) · «il est» (er ist) … und das «s» am Ende hört man nie.'),
+    { type:'rapstep', rap:'etre', erz:'Erst der <b>être-Rap</b> – damit bleibt es im Kopf! 🎤' },
     { type:'conj', verb:'être', erz:'Schau dir «être» an und lass es dir vorlesen:', forms:[['je','suis','ich bin'],['tu','es','du bist'],['il/elle/on','est','er/sie/man ist'],['nous','sommes','wir sind'],['vous','êtes','ihr seid / Sie sind'],['ils/elles','sont','sie sind']], tip:'Eselsbrücke: „<b>suis – es – est – sommes – êtes – sont</b>“' },
     { type:'conj', verb:'être', phase:'pick', erz:'Jetzt du! Tippe die richtigen Formen an.', forms:[['je','suis','ich bin'],['tu','es','du bist'],['il/elle/on','est','er/sie/man ist'],['nous','sommes','wir sind'],['vous','êtes','ihr seid'],['ils/elles','sont','sie sind']] },
     F('Juna ___ un chien. (être)','Juna ___ un chien.','est',{de:'Juna ist ein Hund.'}),
@@ -69,12 +71,22 @@ export const GRAM = {
     F('Vous ___ de Paris ? (être)','Vous ___ de Paris ?','êtes',{de:'Seid ihr aus Paris?'}),
     F('Je ___ content. (être)','Je ___ content.','suis',{de:'Ich bin froh.'}),
     F('Les chats ___ dans le jardin. (être)','Les chats ___ dans le jardin.','sont',{de:'Die Katzen sind im Garten.'}),
+    F('Coco ___ un perroquet. (être)','Coco ___ un perroquet.','est',{de:'Coco ist ein Papagei.'}),
+    F('Tu ___ sympa ! (être)','Tu ___ sympa !','es',{de:'Du bist nett!'}),
+    F('Léa et Max ___ copains. (être)','Léa et Max ___ copains.','sont',{de:'Léa und Max sind Freunde.',hints:['Léa et Max = ils → <b>sont</b>']}),
+    F('Nous ___ fatigués. (être)','Nous ___ fatigués.','sommes',{de:'Wir sind müde.'}),
+    F('Vous ___ où ? (être)','Vous ___ où ?','êtes',{de:'Wo seid ihr?'}),
+    C('es oder est?','Elle ___ dans le jardin.',['est','es'],'est',{note:'il/elle <b>est</b> (mit t) · tu <b>es</b> (ohne t)'}),
+    C('es oder est?','Tu ___ là ?',['es','est'],'es'),
+    C('sommes oder sont?','Les chiens ___ dans le parc.',['sont','sommes'],'sont'),
+    { type:'build', erz:'Bau den Satz: <i>Ich bin elf.</i> Achtung, Falle: Beim Alter nimmt man avoir! → <i>Ich habe elf Jahre.</i>', tiles:["J'",'ai','onze','ans','suis'], answer:"J' ai onze ans", note:'Alter immer mit <b>avoir</b>: J\'ai onze ans.' },
     { type:'conj', verb:'être', phase:'type', erz:'Profi-Runde: «être» ganz allein schreiben!', forms:[['je','suis','ich bin'],['tu','es','du bist'],['il/elle/on','est','er/sie/man ist'],['nous','sommes','wir sind'],['vous','êtes','ihr seid'],['ils/elles','sont','sie sind']] },
   ]},
 
   avoir: { icon:'🎒', titre:'Le verbe avoir', titel:'avoir (haben)', steps:[
     D('«avoir» heißt <i>haben</i>. Auch unregelmäßig. Weil es mit einem Vokal anfängt, heißt es «j\'ai» – nicht „je ai“!',
       'Achtung, Verwechslungsgefahr: «tu as» (du hast) – aber «il a» (er hat), ohne s! Und «ils ont» (sie haben) klingt anders als «ils sont» (sie sind): ont = „õ“, sont = „ßõ“.'),
+    { type:'rapstep', rap:'avoir', erz:'Und hier der <b>avoir-Rap</b>! 🎤' },
     { type:'conj', verb:'avoir', erz:'So sieht «avoir» aus:', forms:[["j'",'ai','ich habe'],['tu','as','du hast'],['il/elle/on','a','er/sie/man hat'],['nous','avons','wir haben'],['vous','avez','ihr habt'],['ils/elles','ont','sie haben']], tip:'„<b>ai – as – a – avons – avez – ont</b>“' },
     { type:'conj', verb:'avoir', phase:'pick', erz:'Tippe die richtigen Formen an:', forms:[["j'",'ai','ich habe'],['tu','as','du hast'],['il/elle/on','a','er/sie/man hat'],['nous','avons','wir haben'],['vous','avez','ihr habt'],['ils/elles','ont','sie haben']] },
     F("J'___ un chien. (avoir)","J'___ un chien.",'ai',{de:'Ich habe einen Hund.'}),
@@ -172,6 +184,7 @@ const GEN={
   etre(){ const p=R(Object.keys(ETRE)); return {type:'fill',strict:true,erz:'Setze «être» (sein) ein:',fr:`${p.charAt(0).toUpperCase()+p.slice(1)} ___ ${R(['à la maison','content','en classe','de Munich','sympa'])}.`,answer:[ETRE[p]],_topic:'être'}; },
   avoir(){ const p=R(Object.keys(AVOIR)); const s=p==='je'?"J'":p.charAt(0).toUpperCase()+p.slice(1)+' ';
     return {type:'fill',strict:true,erz:'Setze «avoir» (haben) ein:',fr:`${s}___ ${R(['un chien','une sœur','faim','onze ans','un stylo'])}.`.replace("' ___","'___"),answer:[AVOIR[p]],_topic:'avoir'}; },
+  esEst(){ const it=R([['Tu ___ content ?','es'],['Il ___ à Paris.','est'],['Elle ___ sympa.','est'],['Tu ___ où ?','es'],['On ___ en classe.','est']]); return {type:'choice',erz:'es oder est?',fr:it[0],options:['es','est'],answer:it[1],_topic:'être'}; },
   sontOnt(){ const has=Math.random()<.5; return {type:'choice',erz:has?'<i>Sie haben einen Hund.</i>':'<i>Sie sind in der Schule.</i>',fr:has?'Ils ___ un chien.':'Ils ___ à l\'école.',options:['ont','sont'],answer:has?'ont':'sont',_topic:'être/avoir'}; },
   article(){ const w=R(words().filter(w=>/^(le|la|l'|les) /.test(w.fr)||/^l'/.test(w.fr))); if(!w) return GEN.vocArt();
     const art=w.fr.match(/^(le|la|les|l')/)[1], n=w.fr.replace(/^(le |la |les |l')/,'');
@@ -188,7 +201,7 @@ const GEN={
 };
 // Probe-Schulaufgabe: feste Mischung der Aufgabentypen, Reihenfolge zufällig
 export function examLesson(){
-  const plan=['vocDeFr','vocDeFr','vocDeFr','vocFrDe','vocFrDe','ecoute','vocArt','ending','ending','ending','ending','endingPick','endingPick','etre','etre','avoir','avoir','sontOnt','article','unUne','unUne','neg','poss','poss','phrase','phrase'];
+  const plan=['vocDeFr','vocDeFr','vocDeFr','vocFrDe','vocFrDe','ecoute','vocArt','ending','ending','ending','ending','endingPick','endingPick','etre','etre','etre','avoir','avoir','sontOnt','sontOnt','esEst','article','unUne','unUne','neg','poss','poss','phrase','phrase'];
   USED=new Set(); const steps=SH(plan).map(k=>GEN[k]());
   return { titre:'Probe-Schulaufgabe', exam:true, steps:[ {type:'dialogue',lines:[{who:'Coco',erz:`Probe-Schulaufgabe! ${steps.length} Aufgaben: Vokabeln, Hören, Endungen, être, avoir, Artikel, Verneinung … Jedes Mal anders gemischt.`},{who:'Coco',erz:'Wie in der echten Schulaufgabe: Tipps (💡) kosten den Punkt. Am Ende bekommst du eine Note – und siehst, was du noch üben solltest. «Bon courage !» 💪'}]}, ...steps ] };
 }
