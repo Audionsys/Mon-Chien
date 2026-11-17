@@ -2,7 +2,7 @@
 import { COURSE } from '../content/course.js';
 import { COMMANDS } from '../content/commands.js';
 import { DECKS } from '../content/vocab.js';
-import { GRAM } from '../content/grammaire.js';
+import { GRAM, fetchRounds } from '../content/grammaire.js';
 import { parseCommand, checkAnswer, missingAccent, norm } from './lang.js';
 import { P, save, learn, dueItems, snapshot } from './progress.js';
 import { say, sfx } from './audio.js';
@@ -39,7 +39,7 @@ export function solutionOf(st){
 function markFurthest(){ const f=P.furthest||{chapter:0,step:0}; if(P.chapter>f.chapter || (P.chapter===f.chapter && P.step>f.step)) P.furthest={chapter:P.chapter,step:P.step}; }
 export { markFurthest };
 // kurze Beschreibung eines Schritts (für "Hierhin springen")
-export function stepLabel(st){ const map={conj:'📘 Konjugation',rappel:'🔁 Wiederholung',intro:'🎯 Einführung',name:'🐶 Name geben',tuto:'🧭 Tutorial',dialogue:'💬 Geschichte',command:'🗣️ Kommando',choice:'👆 Auswählen',fill:'✍️ Lücke füllen',build:'🧩 Satz bauen',object:'🔍 Gegenstand finden',teach:'🧠 Vokabeln beibringen',listen:'👂 Hören',defi:'🏆 Hundeshow (Test)'};
+export function stepLabel(st){ const map={apporte:'🦴 Apportieren',conj:'📘 Konjugation',rappel:'🔁 Wiederholung',intro:'🎯 Einführung',name:'🐶 Name geben',tuto:'🧭 Tutorial',dialogue:'💬 Geschichte',command:'🗣️ Kommando',choice:'👆 Auswählen',fill:'✍️ Lücke füllen',build:'🧩 Satz bauen',object:'🔍 Gegenstand finden',teach:'🧠 Vokabeln beibringen',listen:'👂 Hören',defi:'🏆 Hundeshow (Test)'};
   let t=map[st.type]||st.type; if(st.type==='command') t+=': '+COMMANDS[st.cmd].de; else if(st.type==='teach') t+=': '+(DECKS[st.deck]?.titel||''); else if(st.de && st.type!=='dialogue') t+=': '+st.de.replace(/<[^>]+>/g,'').slice(0,46); return N(t); }
 
 export class Runner {
@@ -52,7 +52,7 @@ export class Runner {
     if(P.chapter>=COURSE.chapters.length){ this.freePlay(); return; }
     this.begin();
   }
-  begin(){ this.hold=false; UI.thinkHide(); this.wrong=0; this.solved=false; const st=this.step; if(!st) return this.chapterDone(); this.hintBase=(help.de&&st.de&&!st.erz)?1:0; if(st.open&&!st.erz) this.hintBase=this.ladder(st).length; this.hint=this.hintBase;
+  begin(){ this.hold=false; if(this.step?.type!=='apporte') this.g.endBones?.clear?.(); UI.thinkHide(); this.wrong=0; this.solved=false; const st=this.step; if(!st) return this.chapterDone(); this.hintBase=(help.de&&st.de&&!st.erz)?1:0; if(st.open&&!st.erz) this.hintBase=this.ladder(st).length; this.hint=this.hintBase;
     if(st.type==='object'){ const p=this.g.room.props.get(st.target); st._word=p?.word.fr; }
     this.g.onStep?.(st);
     this.renderTop(); (H[st.type]||H.dialogue).start.call(this,st); }
@@ -106,7 +106,17 @@ export class Runner {
     const done=()=>{ if(back&&this.step===back){ this.refresh(); } };
     draw(-1); UI.chips([{cls:'sol',html:'⏹ Stopp',onClick:()=>{ stopRap(); }},{html:'🔁 Nochmal',onClick:()=>{ stopRap(); this.rapCard(id,back); }}]);
     playRap(id,{rounds:2,onLine:i=>{ draw(i); setTimeout(()=>UI.scrollInBubble?.(document.querySelector('#bubble .rapl.on')),30); this.g.dog?.happy?.(500); },onEnd:()=>{ if(back) setTimeout(done,50); else { UI.chips([{cls:'sol',html:'🔁 Nochmal',onClick:()=>this.rapCard(id)},{html:'📘 Grammatik',onClick:()=>this.g.openGram?.()}]); } }}); }
-  startGram(id,list,at=0){ this.gStreak=0; const L=list||GRAM[id]; this.freeplay=false; this.review={steps:L.steps,i:at,gram:id,title:L.titre,exam:!!L.exam}; if(!L.exam&&id!=='mix'){ P.gramCur={id,i:at}; save(); } UI.closeSheet?.(); this.begin(); }
+  tapBone(id){ const st=this.step; if(!st||st.type!=='apporte'||this.aBusy) return; const r=this.aR[this.aI]; const lb=id.slice(4);
+    this.aBusy=true; UI.chips([]); const sp=P.step, ri=this.aI;
+    const done=()=>{ if(this.step!==st||this.aI!==ri) return; setTimeout(()=>this.g.endBones?.reset(id),700);
+      if(lb===r.end){ const full=`${r.sub} ${r.stem}${r.end} ${r.obj}`.replace("' ","'"); say(full); sfx.success(); this.g.fx.hearts(3); this.aOk++; this.aErr=0; P.treats+=1; save(); this.renderTop();
+        learn('g:end:'+r.pron,{kind:'word',fr:`${r.pron} …${r.end}`,de:`Endung bei ${r.pron}`,gram:'-er'},2);
+        this.gStreak=(this.gStreak||0)+1; if(this.gStreak>=3&&this.gStreak%3===0){ P.treats+=2; save(); this.g.toast?.(`🔥 <b>${this.gStreak} in Folge!</b> +2 🦴`,1800); }
+        this.refresh(UI.tipLine(`✅ <b class="fr">${UI.esc(full)}</b>`));
+        setTimeout(()=>{ if(this.step!==st) return; this.aI++; this.aBusy=false; if(this.aI>=this.aR.length){ this.g.endBones?.clear(); this.complete(st,{extra:UI.tipLine(`${this.aOk} Knochen richtig geholt! 🦴`)}); } else this.refresh(); },1700); }
+      else { this.aErr++; this.wrong++; this.gStreak=0; sfx.soft_no(); this.g.dog.tilt(); this.aBusy=false; this.refresh(UI.tipLine(`Hm, <b>-${UI.esc(lb)}</b> passt nicht zu <b class="fr">${UI.esc(r.pron)}</b>. Denk an den Rap: E – ES – E, ONS – EZ – ENT!`)); } };
+    if(this.g.endBones){ this.g.endBones.fetch(id,done); setTimeout(()=>{ if(this.aBusy&&this.aI===ri&&this.step===st&&this.g.onFetched){ const f=this.g.onFetched; this.g.onFetched=null; f(); } },9000); } else done(); }
+  startGram(id,list,at=0){ this.gStreak=0; const L=list||GRAM[id]; this.freeplay=false; this.review={steps:L.steps,i:at,gram:id,title:L.titre,exam:!!L.exam}; if(L.sc) Object.assign(this.review,L.sc); P.gramCur= GRAM[id]? {id,i:at} : {id,i:at,titre:L.titre,exam:!!L.exam,steps:L.steps}; save(); UI.closeSheet?.(); this.begin(); }
   miss(extra){ if(this.review?.gram){ this.gStreak=0; this.g.dog.tilt(); } if(Math.random()<0.4) setTimeout(()=>this.g.quip?.('oops'),2200); this.wrong++; this.hint=Math.min(this.ladder(this.step).length, Math.max(this.hint, 1) + (this.wrong>1?1:0)); sfx.soft_no(); this.refresh(extra); }
 
   // ---- geschafft ----
@@ -143,7 +153,7 @@ export class Runner {
       if(k>=10) this.g.celebrate?.(); }
     else if(k>=2) this.g.toast?.(`🔥 ${k} in Folge`,1000); }
   next(){
-    if(this.review){ this.review.i++; if(this.review.gram&&!this.review.exam&&P.gramCur){ if(this.review.i>=this.review.steps.length) delete P.gramCur; else P.gramCur.i=this.review.i; save(); } if(this.review.i>=this.review.steps.length && this.review.exam){ const R=this.review; this.review=null; this.hold=true; const pc=R.max?R.score/R.max:0;
+    if(this.review){ this.review.i++; if(this.review.gram&&P.gramCur){ if(this.review.i>=this.review.steps.length) delete P.gramCur; else { P.gramCur.i=this.review.i; if(this.review.exam) P.gramCur.sc={score:this.review.score||0,max:this.review.max||0,weak:this.review.weak||{}}; } save(); } if(this.review.i>=this.review.steps.length && this.review.exam){ const R=this.review; this.review=null; this.hold=true; const pc=R.max?R.score/R.max:0;
         const note= pc>=.88?1: pc>=.75?2: pc>=.62?3: pc>=.50?4: pc>=.30?5:6; P.exams=P.exams||[]; P.exams.push({d:Date.now(),s:R.score,m:R.max,n:note}); setTimeout(()=>this.g.badgeCheck?.(),2500); if(note<=2) P.treats+=5; else P.treats+=2; save(); sfx.chapter(); this.g.fx.hearts(note<=3?8:3); if(note<=3) this.g.celebrate?.(); this.renderTop();
         const weak=Object.entries(R.weak||{}).sort((a,b)=>b[1]-a[1]); const LES={'-er-Endungen':'er2','être':'etre','avoir':'avoir','être/avoir':'avoir','Artikel':'art','ne … pas':'neg','mon/ma/mes':'poss'};
         const msg=['','Wahnsinn! 🏆','Sehr gut! 🎉','Gut gemacht! 👍','Bestanden – da geht noch was! 💪','Noch nicht – aber genau dafür üben wir! 💪','Nicht schlimm – fang mit den Lektionen an, dann klappt’s! 💪'][note];
@@ -306,6 +316,15 @@ const H = {
     start(st){ UI.setInputMode('none'); this.solved=true; this.refresh(); },
     render(st,extra=''){ UI.coco(`<span class="erz">${weave(st.erz||'Hör dir den Rap an – und rap mit! 🎤')}</span>${extra}`,{chirp:false});
       UI.chips([{cls:'sol',html:'🎵 Song',onClick:()=>this.songCard(st)},{html:'🎤 Sprech-Rap',onClick:()=>this.rapCard(st.rap,st)},{html:'Weiter ➜',onClick:()=>{ stopRap(); this.next(); }}]); },
+  },
+  // Knochen-Apportieren: Endung antippen → Hund holt den Knochen
+  apporte:{
+    start(st){ this.aR=fetchRounds(st.n||8); this.aI=0; this.aOk=0; this.aBusy=false; this.aErr=0; UI.setInputMode('text','Endung …');
+      this.g.endBones?.place(['e','es','ons','ez','ent']); this.refresh(); },
+    render(st,extra=''){ const r=this.aR[this.aI]; if(!r) return;
+      UI.coco(`${this.aI===0?`<span class="erz">${weave(st.erz||'')}</span>`:''}<span class="tutostep" style="display:inline-block">🦴 ${this.aI+1}/${this.aR.length}</span><span class="mission fr" style="display:block;margin-top:4px">${UI.esc(r.sub)}${r.sub.endsWith("'")?'':' '}<b>${UI.esc(r.stem)}<span style="color:#e07b39">___</span></b> ${UI.esc(r.obj)}</span><span class="de">${UI.esc(r.inf)} = ${UI.esc(r.de)} · Welche Endung? Tippe auf den Knochen!</span>${extra}`,{chirp:false});
+      UI.chips(this.aErr>=2?[{cls:'help',html:`💡 ${UI.esc(r.pron)} → -${UI.esc(r.end)}`,onClick:()=>{}}]:[]); },
+    input(st,raw){ const e=raw.trim().replace(/^-/,'').toLowerCase(); if(['e','es','ons','ez','ent'].includes(e)){ this.tapBone('end:'+e); return true; } return false; },
   },
   // Konjugation auswendig lernen: Tabelle ansehen → per Antippen → selbst schreiben
   conj:{

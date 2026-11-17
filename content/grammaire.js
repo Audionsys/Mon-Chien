@@ -31,6 +31,7 @@ export const GRAM = {
     C('Welche Endung gehört zu <b>vous</b> (ihr)?','vous jou___',['ez','es','ent','ons'],'ez',{full:'vous jouez',note:'vous → <b>-ez</b> · Eselsbrücke: vou<b>s</b> und -e<b>z</b> – beide enden „scharf“'}),
     C('Welche Endung gehört zu <b>ils / elles</b> (sie, mehrere)?','ils jou___',['ent','ons','es','e'],'ent',{full:'ils jouent',note:'ils/elles → <b>-ent</b> – das <b>-ent</b> spricht man NICHT!'}),
     { type:'conj', verb:'jouer', phase:'pick', erz:'Jetzt «jouer» (spielen). {N} will mit dir spielen – füll die Tabelle!', forms:ER('jou',['spiele','spielst','spielt','spielt'],'spielen') },
+    { type:'apporte', n:6, erz:'Spielzeit! 🦴 Auf jedem Knochen steht eine Endung. Tippe den richtigen Knochen an – {N} holt ihn dir!' },
     F('Schreib die richtige Form von «regarder» (anschauen): Je ___ la télé.','Je ___ la télé.','regarde',{de:'Ich schaue fern.',hints:['je → <b>-e</b>']}),
     F('{N} fragt: Tu ___ le chocolat ? (aimer = mögen)','Tu ___ le chocolat ?','aimes',{de:'Magst du Schokolade?',hints:['tu → <b>-es</b>']}),
     F('Nous ___ au foot. (jouer)','Nous ___ au foot.','jouons',{de:'Wir spielen Fußball.',hints:['nous → <b>-ons</b>']}),
@@ -45,6 +46,7 @@ export const GRAM = {
 
   er2: { icon:'🎯', titre:'-er : entraînement', titel:'-er-Verben: Endungen-Training', steps:[
     D('Training! Ich gebe dir einen Satz, du schreibst das Verb mit der richtigen Endung. Denk an den Rap: „E – ES – E, ONS – EZ – ENT“ 🎤'),
+    { type:'apporte', n:8, erz:'Aufwärmen mit {N}: Tippe den Knochen mit der richtigen Endung an! 🦴' },
     F('Tu ___ où ? (habiter = wohnen)','Tu ___ où ?','habites',{de:'Wo wohnst du?'}),
     F("J'___ à Munich. (habiter)","J'___ à Munich.",'habite',{de:'Ich wohne in München.'}),
     F('Elle ___ la radio. (écouter = hören)','Elle ___ la radio.','écoute',{de:'Sie hört Radio.'}),
@@ -217,3 +219,9 @@ export function examLesson(){
   USED=new Set(); const steps=SH(plan).map(k=>GEN[k]());
   return { titre:'Probe-Schulaufgabe', exam:true, steps:[ {type:'dialogue',lines:[{who:'Coco',erz:`Probe-Schulaufgabe! ${steps.length} Aufgaben: Vokabeln, Hören, Endungen, être, avoir, Artikel, Verneinung … Jedes Mal anders gemischt.`},{who:'Coco',erz:'Wie in der echten Schulaufgabe: Tipps (💡) kosten den Punkt. Für jede richtige Antwort zeigt {N} einen Trick, und 🔥-Serien bringen Bonus-Knochen. Am Ende bekommst du eine Note – und siehst, was du noch üben solltest. «Bon courage !» 💪'}]}, ...steps ] };
 }
+
+// Runden fürs Knochen-Apportieren (-er-Endungen)
+export function fetchRounds(n=8){ const out=[]; let last='';
+  while(out.length<n){ const [inf,st,de,obj]=R(ERV), [p,e]=R(PRON); if(e===last) continue; last=e;
+    out.push({inf,de,stem:st,pron:p,end:e,obj,sub:subj(p,st+e).trim()}); }
+  return out; }

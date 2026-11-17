@@ -38,7 +38,7 @@ A.preloadMusic('music.mp3');
 function headScreen(){ const p=dog.headWorld(); p.y+=0.22; p.project(world.camera); return {x:(p.x*0.5+0.5)*innerWidth, y:(-p.y*0.5+0.5)*innerHeight}; }
 const fx={ hearts(n=3){ const s=headScreen(); UI.floatFx(s.x,s.y,['❤️','💛','✨','🧡'],n); } };
 dog.on('say',(t,ms)=>UI.dogSay(t,ms)); dog.on('hearts',n=>fx.hearts(n));
-export const VERSION='67';
+export const VERSION='68';
 try{ document.getElementById('ver').textContent='v'+VERSION; }catch(e){}
 function toast(html,ms=2600){ const t=$('toast'); t.innerHTML=N(html); t.classList.add('on'); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('on'),ms); }
 
@@ -84,6 +84,27 @@ function love(kind){ const L=LIKES[kind]; if(!L||!P.name) return; const now=Date
   const t=TRICKS.find(t=>!P.tricks[t.id]&&P.hearts>=t.need); if(t) setTimeout(()=>trickSurprise(t),bonus?4200:1800); }
 g.love=love; g.toast=toast;
 dog.on('liked',love);
+dog.on('liked',k=>{ if(k==='jeu'){ const f=g.onFetched; g.onFetched=null; f?.(); } });
+// ---------- Endungs-Knochen: Apportier-Spiel für die Grammatik ----------
+const EB={ ids:[], slots:{} };
+function boneObj(label){ const g2=new THREE.Group(); const m=new THREE.MeshStandardMaterial({color:0xfff3d6,roughness:0.7});
+  const sh=new THREE.Mesh(new THREE.CylinderGeometry(0.025,0.025,0.2,10),m); sh.rotation.z=Math.PI/2; sh.position.y=0.035; g2.add(sh);
+  for(const x of [-0.1,0.1]) for(const z of [-0.022,0.022]){ const k=new THREE.Mesh(new THREE.SphereGeometry(0.032,12,10),m); k.position.set(x,0.035,z); g2.add(k); }
+  const c=document.createElement('canvas'); c.width=256; c.height=128; const x=c.getContext('2d'); x.fillStyle='#ffffff'; x.strokeStyle='#e07b39'; x.lineWidth=10;
+  x.beginPath(); x.roundRect(8,8,240,112,40); x.fill(); x.stroke(); x.fillStyle='#1d6fd8'; x.font='bold 76px Fredoka, Nunito, sans-serif'; x.textAlign='center'; x.textBaseline='middle'; x.fillText(label,128,68);
+  const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:Object.assign(new THREE.CanvasTexture(c),{colorSpace:THREE.SRGBColorSpace}),depthTest:false,transparent:true,toneMapped:false,fog:false})); sp.scale.set(0.3,0.15,1); sp.position.y=0.22; sp.renderOrder=20; g2.add(sp);
+  const hit=new THREE.Mesh(new THREE.SphereGeometry(0.2,8,6),new THREE.MeshBasicMaterial({transparent:true,opacity:0,depthWrite:false})); hit.position.y=0.12; g2.add(hit);
+  g2.userData.radius=0.035; return g2; }
+g.endBones={
+  place(labels){ this.clear(); const dp=dog.root.position; const n=labels.length;
+    labels.forEach((lb,i)=>{ const id='end:'+lb; const o=boneObj(lb); const S=[[-0.5,0.02],[0,0.1],[0.5,0.02],[-0.27,0.38],[0.27,0.38]][i]||[0,0.6]; const rc=new THREE.Raycaster(); rc.setFromCamera(new THREE.Vector2(S[0],S[1]),world.camera);
+      const hitP=new THREE.Vector3(); rc.ray.intersectPlane(new THREE.Plane(new THREE.Vector3(0,1,0),0),hitP)||hitP.set(dp.x,0,dp.z-1); const p=room.clampPoint(hitP);
+      o.position.set(p.x,0,p.z); room.addProp({id,type:'toy',pos:[p.x,p.z],word:{fr:'-'+lb,de:'Endung'}},o); EB.ids.push(id); EB.slots[id]=new THREE.Vector3(p.x,0,p.z); });
+    dog.faceCamera(); },
+  reset(id){ const pr=room.props.get(id); if(!pr) return; const o=pr.object; if(dog.carry===o) dog.drop(); world.scene.attach(o); o.position.copy(EB.slots[id]); o.rotation.set(0,0,0); },
+  clear(){ for(const id of EB.ids){ const pr=room.props.get(id); if(pr){ if(dog.carry===pr.object) dog.drop(); pr.object.parent?.remove(pr.object); room.props.delete(id); } } EB.ids=[]; EB.slots={}; },
+  fetch(id,cb){ g.onFetched=cb; dog.fetch(id); },
+};
 dog.on('liked',k=>{ if(k==='caresse') track('pet'); if(k==='jeu') track('fetch'); badgeCheck(); });
 dog.on('trickDone',()=>{ track('shown'); badgeCheck(); });
 // ---------- Abzeichen ----------
@@ -352,7 +373,7 @@ $('c').addEventListener('pointerup',e=>{
   if(ray.ray.distanceToPoint(c)<dog.H*0.55){ if(MIS.active){ UI.dogSay('?',800); misHint(); return; } if(pendingGive){ feed(); return; } dog.wake(); dog.praise('caresse'); UI.dogSay('♥',900); run.event('pet'); return; }
   const hit=room.pick(ndc,world.camera); if(!hit) return;
   const now=performance.now(); const dbl=!!(lastTap && now-lastTap.t<420 && Math.hypot(e.clientX-lastTap.x,e.clientY-lastTap.y)<60); lastTap={t:now,x:e.clientX,y:e.clientY};
-  if(hit.prop){ const p=hit.prop; const w=hit.part||p.word; if(ADV.active && !hit.part && ADV.tap(p,e.clientX,e.clientY)){ collectWord(w); return; }
+  if(hit.prop){ const p=hit.prop; const w=hit.part||p.word; if(String(p.id).startsWith('end:')){ run.tapBone?.(p.id); return; } if(ADV.active && !hit.part && ADV.tap(p,e.clientX,e.clientY)){ collectWord(w); return; }
     // begehbare Flächen (Teppich, Straße, Zebrastreifen …): Wort sagen UND hinlaufen; Doppeltipp = rennen, Wort nicht nochmal
     const ground= GROUND.has(p.type) || (hit.point && hit.point.y<0.06);
     if(!(dbl&&ground)){ A.sfx.pop(); UI.wordLabel(e.clientX,e.clientY-10,w.fr,w.de); A.say(w.fr,{word:true}); collectWord(w); if(ADV.active){ if(ADV.prop(p)) return; } else { run.event('prop'); if(!MIS.active && run.prop(p)) return; } }
@@ -693,7 +714,7 @@ dog.load(p=>{ $('loadBar').style.width=(p*100)+'%'; }).then(()=>{
   $('loadBar').style.width='100%'; const st=$('start'); st.style.display='block'; document.querySelector('#load .bar').style.display='none'; $('loadMsg').style.display='none';
   $('load').classList.remove('loading'); titleCam=!hasArt; { const c=room.centerOf('salon'); dog.root.position.set(c[0]+0.8,0,c[1]+0.4); } dog.yaw=0; dog.setPose(1,0); dog.wagAmt=0.8; dog.wagSpeed=11;
   if(P.name){ st.textContent=N('Weiter mit {N} 🐾'); document.querySelector('#load .cocoSays').textContent=N('Coucou ! {N} t\'attend !'); }
-  st.onclick=()=>{ guardHistory(); goFullscreen(); document.body.classList.remove('title'); titleCam=false; dog.setPose(0,0); dog.wagAmt=0.25; dog.wagSpeed=7; const s0=room.start; dog.root.position.set(s0.pos[0],0,s0.pos[1]); dog.yaw=s0.yaw; started=true; bump(); A.audioCtx(); A.startMusic(); A.sfx.pop(); $('load').style.opacity=0; setTimeout(()=>$('load').remove(),500); if(P.gramCur&&GRAM[P.gramCur.id]){ run.startGram(P.gramCur.id,null,Math.max(0,Math.min(P.gramCur.i|0,GRAM[P.gramCur.id].steps.length-1))); toast('📘 Weiter, wo du aufgehört hast!',2600); } else run.start(); if(P.name && !P.gender) setTimeout(()=>askGender(),1500);
+  st.onclick=()=>{ guardHistory(); goFullscreen(); document.body.classList.remove('title'); titleCam=false; dog.setPose(0,0); dog.wagAmt=0.25; dog.wagSpeed=7; const s0=room.start; dog.root.position.set(s0.pos[0],0,s0.pos[1]); dog.yaw=s0.yaw; started=true; bump(); A.audioCtx(); A.startMusic(); A.sfx.pop(); $('load').style.opacity=0; setTimeout(()=>$('load').remove(),500); if(P.gramCur&&(GRAM[P.gramCur.id]||P.gramCur.steps)){ const C=P.gramCur, L=GRAM[C.id]||{titre:C.titre,exam:C.exam,steps:C.steps,sc:C.sc}; run.startGram(C.id,GRAM[C.id]?null:L,Math.max(0,Math.min(C.i|0,L.steps.length-1))); toast('📘 Weiter, wo du aufgehört hast!',2600); } else run.start(); if(P.name && !P.gender) setTimeout(()=>askGender(),1500);
     setTimeout(badgeCheck,15000);
     setTimeout(function wishHint(){ if(!P.name) return; const w=todayWish(); if(w.told||w.done) return; if(UI.sheetIsOpen()||cocoSaved||ADV.active||run.review?.gram||run.hold){ setTimeout(wishHint,5000); return; } w.told=1; save(); toast(`🌟 <b class="fr">Aujourd'hui, {N} adore ${LIKES[w.kind].fr} !</b><br>Heute wünscht sich {N}: ${LIKES[w.kind].de} → +5 ❤️ <small>(tippe oben auf ❤️)</small>`,6000); }, 9000);
      };
