@@ -2,7 +2,7 @@
 import { COURSE } from '../content/course.js';
 import { COMMANDS } from '../content/commands.js';
 import { DECKS } from '../content/vocab.js';
-import { GRAM, fetchRounds } from '../content/grammaire.js';
+import { GRAM, fetchSet } from '../content/grammaire.js';
 import { parseCommand, checkAnswer, missingAccent, norm } from './lang.js';
 import { P, save, learn, dueItems, snapshot } from './progress.js';
 import { say, sfx } from './audio.js';
@@ -109,12 +109,12 @@ export class Runner {
   tapBone(id){ const st=this.step; if(!st||st.type!=='apporte'||this.aBusy) return; const r=this.aR[this.aI]; const lb=id.slice(4);
     this.aBusy=true; UI.chips([]); const sp=P.step, ri=this.aI;
     const done=()=>{ if(this.step!==st||this.aI!==ri) return; setTimeout(()=>this.g.endBones?.reset(id),700);
-      if(lb===r.end){ const full=`${r.sub} ${r.stem}${r.end} ${r.obj}`.replace("' ","'"); say(full); sfx.success(); this.g.fx.hearts(3); this.aOk++; this.aErr=0; P.treats+=1; save(); this.renderTop();
-        learn('g:end:'+r.pron,{kind:'word',fr:`${r.pron} …${r.end}`,de:`Endung bei ${r.pron}`,gram:'-er'},2);
+      if(lb===r.ans){ const full=N(`${r.pre}${r.ans}${r.ans.endsWith("'")||r.pre.endsWith(' ')||r.pre===''||r.pre.endsWith("'")?'':''}${r.post}`).replace(/^(\S+') /,'$1'); say(full); sfx.success(); this.g.fx.hearts(3); this.aOk++; this.aErr=0; P.treats+=1; save(); this.renderTop();
+        learn('g:'+(st.set||'er')+':'+r.key,{kind:'word',fr:full,de:r.de,gram:st.set||'er'},2);
         this.gStreak=(this.gStreak||0)+1; if(this.gStreak>=3&&this.gStreak%3===0){ P.treats+=2; save(); this.g.toast?.(`🔥 <b>${this.gStreak} in Folge!</b> +2 🦴`,1800); }
         this.refresh(UI.tipLine(`✅ <b class="fr">${UI.esc(full)}</b>`));
         setTimeout(()=>{ if(this.step!==st) return; this.aI++; this.aBusy=false; if(this.aI>=this.aR.length){ this.g.endBones?.clear(); this.complete(st,{extra:UI.tipLine(`${this.aOk} Knochen richtig geholt! 🦴`)}); } else this.refresh(); },1700); }
-      else { this.aErr++; this.wrong++; this.gStreak=0; sfx.soft_no(); this.g.dog.tilt(); this.aBusy=false; this.refresh(UI.tipLine(`Hm, <b>-${UI.esc(lb)}</b> passt nicht zu <b class="fr">${UI.esc(r.pron)}</b>. Denk an den Rap: E – ES – E, ONS – EZ – ENT!`)); } };
+      else { this.aErr++; this.wrong++; this.gStreak=0; sfx.soft_no(); this.g.dog.tilt(); this.aBusy=false; this.refresh(UI.tipLine(`Hm, <b class="fr">${UI.esc(lb)}</b> passt hier nicht. ${UI.esc(this.aTip||'')}`)); } };
     if(this.g.endBones){ this.g.endBones.fetch(id,done); setTimeout(()=>{ if(this.aBusy&&this.aI===ri&&this.step===st&&this.g.onFetched){ const f=this.g.onFetched; this.g.onFetched=null; f(); } },9000); } else done(); }
   startGram(id,list,at=0){ this.gStreak=0; const L=list||GRAM[id]; this.freeplay=false; this.review={steps:L.steps,i:at,gram:id,title:L.titre,exam:!!L.exam}; if(L.sc) Object.assign(this.review,L.sc); P.gramCur= GRAM[id]? {id,i:at} : {id,i:at,titre:L.titre,exam:!!L.exam,steps:L.steps}; save(); UI.closeSheet?.(); this.begin(); }
   miss(extra){ if(this.review?.gram){ this.gStreak=0; this.g.dog.tilt(); } if(Math.random()<0.4) setTimeout(()=>this.g.quip?.('oops'),2200); this.wrong++; this.hint=Math.min(this.ladder(this.step).length, Math.max(this.hint, 1) + (this.wrong>1?1:0)); sfx.soft_no(); this.refresh(extra); }
@@ -319,12 +319,12 @@ const H = {
   },
   // Knochen-Apportieren: Endung antippen → Hund holt den Knochen
   apporte:{
-    start(st){ this.aR=fetchRounds(st.n||8); this.aI=0; this.aOk=0; this.aBusy=false; this.aErr=0; UI.setInputMode('text','Endung …');
-      this.g.endBones?.place(['e','es','ons','ez','ent']); this.refresh(); },
+    start(st){ const F=fetchSet(st.set||'er',st.n||8); this.aR=F.rounds; this.aL=F.labels; this.aTip=F.tip; this.aI=0; this.aOk=0; this.aBusy=false; this.aErr=0; UI.setInputMode('text','Antwort …');
+      this.g.endBones?.place(this.aL); this.refresh(); },
     render(st,extra=''){ const r=this.aR[this.aI]; if(!r) return;
-      UI.coco(`${this.aI===0?`<span class="erz">${weave(st.erz||'')}</span>`:''}<span class="tutostep" style="display:inline-block">🦴 ${this.aI+1}/${this.aR.length}</span><span class="mission fr" style="display:block;margin-top:4px">${UI.esc(r.sub)}${r.sub.endsWith("'")?'':' '}<b>${UI.esc(r.stem)}<span style="color:#e07b39">___</span></b> ${UI.esc(r.obj)}</span><span class="de">${UI.esc(r.inf)} = ${UI.esc(r.de)} · Tippe auf einen Knochen im Zimmer oder unten auf eine Endung!</span>${extra}`,{chirp:false});
-      UI.chips(['e','es','ons','ez','ent'].map(e=>({cls:'ans fr',html:'-'+e,onClick:()=>this.tapBone('end:'+e)})).concat(this.aErr>=2?[{cls:'help',html:`💡 ${UI.esc(r.pron)} → -${UI.esc(r.end)}`,onClick:()=>{}}]:[])); },
-    input(st,raw){ const e=raw.trim().replace(/^-/,'').toLowerCase(); if(['e','es','ons','ez','ent'].includes(e)){ this.tapBone('end:'+e); return true; } return false; },
+      UI.coco(`${this.aI===0?`<span class="erz">${weave(st.erz||'')}</span>`:''}<span class="tutostep" style="display:inline-block">🦴 ${this.aI+1}/${this.aR.length}</span><span class="mission fr" style="display:block;margin-top:4px">${UI.esc(N(r.pre))}<span style="color:#e07b39">___</span>${UI.esc(N(r.dpost||r.post))}</span><span class="de">${UI.esc(r.de)} · Tippe auf einen Knochen im Zimmer oder unten auf eine Antwort!</span>${extra}`,{chirp:false});
+      UI.chips(this.aL.map(e=>({cls:'ans fr',html:UI.esc(this.aL.includes('ons')?'-'+e:e),onClick:()=>this.tapBone('end:'+e)})).concat(this.aErr>=2?[{cls:'help',html:`💡 ${UI.esc(r.tip)}`,onClick:()=>{}}]:[])); },
+    input(st,raw){ const e=raw.trim().replace(/^-/,'').replace(/[.!?]+$/,'').toLowerCase(); const hit=this.aL.find(l=>norm(l)===norm(e)); if(hit){ this.tapBone('end:'+hit); return true; } return false; },
   },
   // Konjugation auswendig lernen: Tabelle ansehen → per Antippen → selbst schreiben
   conj:{

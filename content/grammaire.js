@@ -67,6 +67,7 @@ export const GRAM = {
     { type:'rapstep', rap:'etre', erz:'Erst der <b>être-Rap</b> – damit bleibt es im Kopf! 🎤' },
     { type:'conj', verb:'être', erz:'Schau dir «être» an und lass es dir vorlesen:', forms:[['je','suis','ich bin'],['tu','es','du bist'],['il/elle/on','est','er/sie/man ist'],['nous','sommes','wir sind'],['vous','êtes','ihr seid / Sie sind'],['ils/elles','sont','sie sind']], tip:'Eselsbrücke: „<b>suis – es – est – sommes – êtes – sont</b>“' },
     { type:'conj', verb:'être', phase:'pick', erz:'Jetzt du! Tippe die richtigen Formen an.', forms:[['je','suis','ich bin'],['tu','es','du bist'],['il/elle/on','est','er/sie/man ist'],['nous','sommes','wir sind'],['vous','êtes','ihr seid'],['ils/elles','sont','sie sind']] },
+    { type:'apporte', set:'etre', n:8, erz:'Spielzeit! 🦴 Auf den Knochen stehen die Formen von être. Tippe den richtigen an – {N} holt ihn!' },
     F('{N} ___ un chien. (être)','{N} ___ un chien.','est',{de:'{N} ist ein Hund.'}),
     F('Nous ___ en classe. (être)','Nous ___ en classe.','sommes',{de:'Wir sind in der Klasse.'}),
     F('Tu ___ où ? (être)','Tu ___ où ?','es',{de:'Wo bist du?'}),
@@ -82,6 +83,7 @@ export const GRAM = {
     C('es oder est?','Tu ___ là ?',['es','est'],'es'),
     C('sommes oder sont?','Les chiens ___ dans le parc.',['sont','sommes'],'sont'),
     { type:'build', erz:'Bau den Satz: <i>Ich bin elf.</i> Achtung, Falle: Beim Alter nimmt man avoir! → <i>Ich habe elf Jahre.</i>', tiles:["J'",'ai','onze','ans','suis'], answer:"J' ai onze ans", note:'Alter immer mit <b>avoir</b>: J\'ai onze ans.' },
+    { type:'apporte', set:'etre', n:6, erz:'Noch eine Runde Apportieren mit être – schneller jetzt! 🦴' },
     { type:'conj', verb:'être', phase:'type', erz:'Profi-Runde: «être» ganz allein schreiben!', forms:[['je','suis','ich bin'],['tu','es','du bist'],['il/elle/on','est','er/sie/man ist'],['nous','sommes','wir sind'],['vous','êtes','ihr seid'],['ils/elles','sont','sie sind']] },
   ]},
 
@@ -91,6 +93,7 @@ export const GRAM = {
     { type:'rapstep', rap:'avoir', erz:'Und hier der <b>avoir-Rap</b>! 🎤' },
     { type:'conj', verb:'avoir', erz:'So sieht «avoir» aus:', forms:[["j'",'ai','ich habe'],['tu','as','du hast'],['il/elle/on','a','er/sie/man hat'],['nous','avons','wir haben'],['vous','avez','ihr habt'],['ils/elles','ont','sie haben']], tip:'„<b>ai – as – a – avons – avez – ont</b>“' },
     { type:'conj', verb:'avoir', phase:'pick', erz:'Tippe die richtigen Formen an:', forms:[["j'",'ai','ich habe'],['tu','as','du hast'],['il/elle/on','a','er/sie/man hat'],['nous','avons','wir haben'],['vous','avez','ihr habt'],['ils/elles','ont','sie haben']] },
+    { type:'apporte', set:'avoir', n:8, erz:'Spielzeit! 🦴 Jetzt die Formen von avoir. Tippe den richtigen Knochen an!' },
     F("J'___ un chien. (avoir)","J'___ un chien.",'ai',{de:'Ich habe einen Hund.'}),
     F('{N} ___ faim ! (avoir)','{N} ___ faim !','a',{de:'{N} hat Hunger!',note:'avoir faim = Hunger haben'}),
     F('Tu ___ un stylo ? (avoir)','Tu ___ un stylo ?','as',{de:'Hast du einen Stift?'}),
@@ -106,6 +109,7 @@ export const GRAM = {
     D('Im Französischen gibt es nur zwei Geschlechter: männlich und weiblich. «le» = der (männlich), «la» = die (weiblich).',
       'Vor einem Vokal oder h werden beide zu «l\'»: «l\'ami», «l\'école». Und in der Mehrzahl heißt es immer «les» – egal ob männlich oder weiblich!',
       'Wichtig: Das Geschlecht ist oft anders als im Deutschen! «le chat» = die Katze (männlich), «la balle» = der Ball (weiblich). Darum Wörter immer mit Artikel lernen!'),
+    { type:'apporte', set:'art', n:8, erz:'Apportieren mit Artikeln! 🦴 le, la, l\' oder les – {N} holt den richtigen.' },
     C('Welcher Artikel? (chien ist männlich)','___ chien',['le','la',"l'",'les'],'le',{full:'le chien'}),
     C('Welcher Artikel? (maison ist weiblich)','___ maison',['la','le',"l'",'les'],'la',{full:'la maison'}),
     C('Welcher Artikel? (ami fängt mit Vokal an)','___ami',["l'",'le','la','les'],"l'",{full:"l'ami",note:"Vor Vokal: le/la → <b>l'</b>"}),
@@ -114,6 +118,7 @@ export const GRAM = {
     C('Welcher Artikel? (copine = Freundin)','___ copine',['la','le','les',"l'"],'la',{full:'la copine'}),
     C('Welcher Artikel? (copains = Freunde, Mehrzahl)','___ copains',['les','le','la'],'les',{full:'les copains'}),
     D('Und dann gibt es noch den unbestimmten Artikel: «un» = ein (männlich), «une» = eine (weiblich) – und in der Mehrzahl «des» (= einige; im Deutschen oft gar kein Wort).'),
+    { type:'apporte', set:'unune', n:6, erz:'Und jetzt un, une oder des – {N} wartet schon! 🦴' },
     C('un, une oder des?','J\'ai ___ chien.',['un','une','des'],'un',{de:'Ich habe einen Hund.'}),
     C('un, une oder des?','C\'est ___ fille.',['une','un','des'],'une',{de:'Das ist ein Mädchen.'}),
     C('un, une oder des?','Il y a ___ chats dans le jardin.',['des','un','une'],'des',{de:'Es gibt Katzen im Garten.',note:'Mehrzahl → <b>des</b>'}),
@@ -126,6 +131,7 @@ export const GRAM = {
       'Vor einem Vokal wird «ne» zu «n\'»: «Je <b>n\'</b>aime <b>pas</b> les chats.» – sagt {N}. 🐶'),
     { type:'build', erz:'Bau das Sandwich: <i>Ich spiele nicht.</i>', tiles:['Je','ne','joue','pas'], answer:'Je ne joue pas' },
     { type:'build', erz:'<i>{N} ist nicht traurig.</i> (triste = traurig)', tiles:['{N}','n\'','est','pas','triste','ne'], answer:"{N} n' est pas triste", hints:['Vor «est» (Vokal): <b>n\'</b>'] },
+    { type:'apporte', set:'neg', n:6, erz:'Apportieren: ne oder n\'? 🦴' },
     C('ne oder n\'?','Tu ___ aimes pas le foot ?',["n'",'ne'],"n'",{note:"Vor Vokal: ne → <b>n'</b>"}),
     C('ne oder n\'?','Nous ___ regardons pas la télé.',['ne',"n'"],'ne'),
     C('Wo steht das «pas»?','Il ne parle ___ .',['pas – nach dem Verb','vor dem Verb'],'pas – nach dem Verb',{fr:null,note:'ne + Verb + pas'}),
@@ -136,6 +142,7 @@ export const GRAM = {
   poss: { icon:'👜', titre:'mon, ma, mes', titel:'mein, dein, sein (Possessiv)', steps:[
     D('„Mein“ richtet sich nach dem Ding, das einem gehört – nicht nach dem Besitzer! «mon» vor männlich, «ma» vor weiblich, «mes» in der Mehrzahl.',
       'Genauso: «ton/ta/tes» = dein, «son/sa/ses» = sein ODER ihr. Trick: vor Vokal immer «mon/ton/son», auch bei weiblichen Wörtern: «mon amie».'),
+    { type:'apporte', set:'poss', n:8, erz:'Apportieren: mon, ma oder mes? 🦴' },
     C('mein ___ chien',"___ chien",['mon','ma','mes'],'mon',{full:'mon chien'}),
     C('meine ___ sœur (Schwester)','___ sœur',['ma','mon','mes'],'ma',{full:'ma sœur'}),
     C('meine ___ copains (Mehrzahl)','___ copains',['mes','mon','ma'],'mes',{full:'mes copains'}),
@@ -220,8 +227,25 @@ export function examLesson(){
   return { titre:'Probe-Schulaufgabe', exam:true, steps:[ {type:'dialogue',lines:[{who:'Coco',erz:`Probe-Schulaufgabe! ${steps.length} Aufgaben: Vokabeln, Hören, Endungen, être, avoir, Artikel, Verneinung … Jedes Mal anders gemischt.`},{who:'Coco',erz:'Wie in der echten Schulaufgabe: Tipps (💡) kosten den Punkt. Für jede richtige Antwort zeigt {N} einen Trick, und 🔥-Serien bringen Bonus-Knochen. Am Ende bekommst du eine Note – und siehst, was du noch üben solltest. «Bon courage !» 💪'}]}, ...steps ] };
 }
 
-// Runden fürs Knochen-Apportieren (-er-Endungen)
-export function fetchRounds(n=8){ const out=[]; let last='';
-  while(out.length<n){ const [inf,st,de,obj]=R(ERV), [p,e]=R(PRON); if(e===last) continue; last=e;
-    out.push({inf,de,stem:st,pron:p,end:e,obj,sub:subj(p,st+e).trim()}); }
-  return out; }
+// Runden fürs Knochen-Apportieren – verschiedene Sets
+// Runde: { pre, post, ans, de, tip }  → Anzeige: pre + ___ + post
+const cap=x=>x.charAt(0).toUpperCase()+x.slice(1);
+const SETS={
+  er:{ labels:['e','es','ons','ez','ent'], tip:'Denk an den Rap: E – ES – E, ONS – EZ – ENT!', make(){ const [inf,st,de,obj]=R(ERV), [p,e]=R(PRON); const sb=subj(p,st+e);
+      return { pre:`${sb}${sb.endsWith("'")?'':''}${st}`, post:` ${obj}`, ans:e, de:`${inf} = ${de}`, tip:`${p} → -${e}`, key:p }; } },
+  etre:{ labels:['suis','es','est','sommes','êtes','sont'], tip:'Denk an den être-Rap: suis – es – est – sommes – êtes – sont!', make(){ const p=R(Object.keys(ETRE)); const o=R(['à la maison','content','en classe','de Munich','sympa','dans le jardin']);
+      return { pre:`${cap(p)} `, post:` ${o}.`, ans:ETRE[p], de:'être = sein', tip:`${p} → ${ETRE[p]}`, key:p }; } },
+  avoir:{ labels:['ai','as','a','avons','avez','ont'], tip:'Denk an den avoir-Rap: ai – as – a – avons – avez – ont!', make(){ const p=R(Object.keys(AVOIR)); const o=R(['un chien','une sœur','faim','onze ans','un stylo','un vélo']);
+      return { pre:p==='je'?"J'":`${cap(p)} `, post:` ${o}.`, ans:AVOIR[p], de:'avoir = haben', tip:`${p==='je'?"j'":p} → ${AVOIR[p]}`, key:p }; } },
+  art:{ labels:['le','la',"l'",'les'], tip:"männlich → le · weiblich → la · vor Vokal → l' · Mehrzahl → les", make(){ const w=R(words().filter(w=>/^(le|la|les) |^l'/.test(w.fr))); const a=w.fr.match(/^(le|la|les|l')/)[1], n=w.fr.replace(/^(le |la |les |l')/,'');
+      return { pre:'', post:` ${n}`, ans:a, de:w.de, tip:`${w.fr}`, key:'art' }; } },
+  unune:{ labels:['un','une','des'], tip:'un = männlich · une = weiblich · des = Mehrzahl', make(){ const it=R([['chien','un','ein Hund'],['fille','une','ein Mädchen'],['garçon','un','ein Junge'],['maison','une','ein Haus'],['livre','un','ein Buch'],['copine','une','eine Freundin'],['chats','des','Katzen'],['stylo','un','ein Stift'],['école','une','eine Schule'],['amis','des','Freunde'],['balle','une','ein Ball'],['vélos','des','Fahrräder']]);
+      return { pre:"C'est ".replace("C'est ",it[1]==='des'?'Ce sont ':"C'est "), post:` ${it[0]}.`, ans:it[1], de:it[2], tip:`${it[1]} ${it[0]}`, key:'unune' }; } },
+  poss:{ labels:['mon','ma','mes'], tip:'mon = männlich (oder Vokal) · ma = weiblich · mes = Mehrzahl', make(){ const it=R([['chien','mon','mein Hund'],['sœur','ma','meine Schwester'],['copains','mes','meine Freunde'],['livre','mon','mein Buch'],['maison','ma','mein Haus'],['amie','mon','meine Freundin (Vokal!)'],['parents','mes','meine Eltern'],['chambre','ma','mein Zimmer'],['école','mon','meine Schule (Vokal!)']]);
+      return { pre:'', post:` ${it[0]}`, ans:it[1], de:it[2], tip:`${it[1]} ${it[0]}`, key:'poss' }; } },
+  neg:{ labels:['ne',"n'"], tip:"Vor einem Vokal wird ne zu n'", make(){ const it=R([['Je','parle','pas allemand'],['Tu','aimes','pas le foot'],['Il','est','pas là'],['Nous','jouons','pas'],['Elle','habite','pas à Paris'],['Vous','regardez','pas la télé'],['Ils','ont','pas de chat'],['Je','suis','pas fatigué']]);
+      const v=vowel(it[1]); return { pre:`${it[0]} `, post:`${v?'':' '}${it[1]} ${it[2]}.`, ans:v?"n'":'ne', de:'Verneinung', tip:v?`vor Vokal (${it[1]}) → n'`:'vor Konsonant → ne', key:'neg', dpost:` ${it[1]} ${it[2]}.` }; } },
+};
+export function fetchSet(set='er',n=8){ const S=SETS[set]||SETS.er; const out=[]; let last='';
+  for(let k=0;k<200&&out.length<n;k++){ const r=S.make(); if(r.ans===last) continue; last=r.ans; out.push(r); }
+  return { labels:S.labels, tip:S.tip, rounds:out }; }

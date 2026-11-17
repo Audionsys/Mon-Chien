@@ -38,7 +38,7 @@ A.preloadMusic('music.mp3');
 function headScreen(){ const p=dog.headWorld(); p.y+=0.22; p.project(world.camera); return {x:(p.x*0.5+0.5)*innerWidth, y:(-p.y*0.5+0.5)*innerHeight}; }
 const fx={ hearts(n=3){ const s=headScreen(); UI.floatFx(s.x,s.y,['❤️','💛','✨','🧡'],n); } };
 dog.on('say',(t,ms)=>UI.dogSay(t,ms)); dog.on('hearts',n=>fx.hearts(n));
-export const VERSION='69';
+export const VERSION='70';
 try{ document.getElementById('ver').textContent='v'+VERSION; }catch(e){}
 function toast(html,ms=2600){ const t=$('toast'); t.innerHTML=N(html); t.classList.add('on'); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('on'),ms); }
 
@@ -91,18 +91,18 @@ function boneObj(label){ const g2=new THREE.Group(); const m=new THREE.MeshStand
   const sh=new THREE.Mesh(new THREE.CylinderGeometry(0.025,0.025,0.2,10),m); sh.rotation.z=Math.PI/2; sh.position.y=0.035; g2.add(sh);
   for(const x of [-0.1,0.1]) for(const z of [-0.022,0.022]){ const k=new THREE.Mesh(new THREE.SphereGeometry(0.032,12,10),m); k.position.set(x,0.035,z); g2.add(k); }
   const c=document.createElement('canvas'); c.width=256; c.height=128; const x=c.getContext('2d'); x.fillStyle='#ffffff'; x.strokeStyle='#e07b39'; x.lineWidth=10;
-  x.beginPath(); x.roundRect(8,8,240,112,40); x.fill(); x.stroke(); x.fillStyle='#1d6fd8'; x.font='bold 76px Fredoka, Nunito, sans-serif'; x.textAlign='center'; x.textBaseline='middle'; x.fillText(label,128,68);
+  x.beginPath(); x.roundRect(8,8,240,112,40); x.fill(); x.stroke(); x.fillStyle='#1d6fd8'; let fs=76; do{ x.font=`bold ${fs}px Fredoka, Nunito, sans-serif`; fs-=4; } while(x.measureText(label).width>210&&fs>30); x.textAlign='center'; x.textBaseline='middle'; x.fillText(label,128,68);
   const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:Object.assign(new THREE.CanvasTexture(c),{colorSpace:THREE.SRGBColorSpace}),depthTest:false,transparent:true,toneMapped:false,fog:false})); sp.scale.set(0.3,0.15,1); sp.position.y=0.22; sp.renderOrder=20; g2.add(sp);
   const hit=new THREE.Mesh(new THREE.SphereGeometry(0.2,8,6),new THREE.MeshBasicMaterial({transparent:true,opacity:0,depthWrite:false})); hit.position.y=0.12; g2.add(hit);
   g2.userData.radius=0.035; return g2; }
 g.endBones={
   place(labels){ this.clear(); const dp=dog.root.position; const n=labels.length;
-    labels.forEach((lb,i)=>{ const id='end:'+lb; const o=boneObj(lb); const S=[[-0.5,0.02],[0,0.1],[0.5,0.02],[-0.27,0.38],[0.27,0.38]][i]||[0,0.6]; const rc=new THREE.Raycaster(); rc.setFromCamera(new THREE.Vector2(S[0],S[1]),world.camera);
+    labels.forEach((lb,i)=>{ const id='end:'+lb; const o=boneObj(lb); const S=(n<=3?[[-0.4,0.1],[0,0.25],[0.4,0.1]]:n===4?[[-0.45,0.05],[0.45,0.05],[-0.22,0.38],[0.22,0.38]]:n===6?[[-0.5,0.02],[0,0.05],[0.5,0.02],[-0.5,0.38],[0,0.4],[0.5,0.38]]:[[-0.5,0.02],[0,0.1],[0.5,0.02],[-0.27,0.38],[0.27,0.38]])[i]||[0,0.6]; const rc=new THREE.Raycaster(); rc.setFromCamera(new THREE.Vector2(S[0],S[1]),world.camera);
       const hitP=new THREE.Vector3(); rc.ray.intersectPlane(new THREE.Plane(new THREE.Vector3(0,1,0),0),hitP)||hitP.set(dp.x,0,dp.z-1); const p=room.clampPoint(hitP);
       o.position.set(p.x,0,p.z); room.addProp({id,type:'toy',pos:[p.x,p.z],word:{fr:'-'+lb,de:'Endung'}},o); EB.ids.push(id); EB.slots[id]=new THREE.Vector3(p.x,0,p.z); });
     dog.faceCamera(); },
   reset(id){ const pr=room.props.get(id); if(!pr) return; const o=pr.object; if(dog.carry===o) dog.drop(); world.scene.attach(o); o.position.copy(EB.slots[id]); o.rotation.set(0,0,0); },
-  clear(){ for(const id of EB.ids){ const pr=room.props.get(id); if(pr){ if(dog.carry===pr.object) dog.drop(); pr.object.parent?.remove(pr.object); room.props.delete(id); } } EB.ids=[]; EB.slots={}; },
+  clear(){ if(String(dog.fetchTarget||'').startsWith('end:')){ dog.clearTimers(); dog.mode='idle'; dog.fetchTarget=null; g.onFetched=null; } for(const id of EB.ids){ const pr=room.props.get(id); if(pr){ if(dog.carry===pr.object) dog.drop(); pr.object.parent?.remove(pr.object); room.props.delete(id); } } EB.ids=[]; EB.slots={}; },
   fetch(id,cb){ g.onFetched=cb; dog.fetch(id); },
 };
 dog.on('liked',k=>{ if(k==='caresse') track('pet'); if(k==='jeu') track('fetch'); badgeCheck(); });
