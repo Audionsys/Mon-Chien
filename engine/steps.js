@@ -106,8 +106,8 @@ export class Runner {
     const done=()=>{ if(back&&this.step===back){ this.refresh(); } };
     draw(-1); UI.chips([{cls:'sol',html:'⏹ Stopp',onClick:()=>{ stopRap(); }},{html:'🔁 Nochmal',onClick:()=>{ stopRap(); this.rapCard(id,back); }}]);
     playRap(id,{rounds:2,onLine:i=>{ draw(i); setTimeout(()=>UI.scrollInBubble?.(document.querySelector('#bubble .rapl.on')),30); this.g.dog?.happy?.(500); },onEnd:()=>{ if(back) setTimeout(done,50); else { UI.chips([{cls:'sol',html:'🔁 Nochmal',onClick:()=>this.rapCard(id)},{html:'📘 Grammatik',onClick:()=>this.g.openGram?.()}]); } }}); }
-  startGram(id,list,at=0){ const L=list||GRAM[id]; this.freeplay=false; this.review={steps:L.steps,i:at,gram:id,title:L.titre,exam:!!L.exam}; if(!L.exam&&id!=='mix'){ P.gramCur={id,i:at}; save(); } UI.closeSheet?.(); this.begin(); }
-  miss(extra){ if(Math.random()<0.4) setTimeout(()=>this.g.quip?.('oops'),2200); this.wrong++; this.hint=Math.min(this.ladder(this.step).length, Math.max(this.hint, 1) + (this.wrong>1?1:0)); sfx.soft_no(); this.refresh(extra); }
+  startGram(id,list,at=0){ this.gStreak=0; const L=list||GRAM[id]; this.freeplay=false; this.review={steps:L.steps,i:at,gram:id,title:L.titre,exam:!!L.exam}; if(!L.exam&&id!=='mix'){ P.gramCur={id,i:at}; save(); } UI.closeSheet?.(); this.begin(); }
+  miss(extra){ if(this.review?.gram){ this.gStreak=0; this.g.dog.tilt(); } if(Math.random()<0.4) setTimeout(()=>this.g.quip?.('oops'),2200); this.wrong++; this.hint=Math.min(this.ladder(this.step).length, Math.max(this.hint, 1) + (this.wrong>1?1:0)); sfx.soft_no(); this.refresh(extra); }
 
   // ---- geschafft ----
   complete(st,{extra='',sayText}={}){
@@ -130,17 +130,28 @@ export class Runner {
     if(st.note) h+=UI.noteLine('✏️ '+st.note);
     UI.coco(h+extra); say(N(full || sayText || sol)); if(Math.random()<0.3) setTimeout(()=>this.g.quip?.('bravo'),2600);
     UI.chips([{cls:'sol', html:'Weiter ➜', onClick:()=>this.next()}]);
+    if(this.review?.gram) this.gramReward(st, full||sol||'', this.wrong===0&&this.hint<=(this.hintBase||0));
   }
+  // Hundeschule: richtige Antwort → der Hund spielt den Satz nach / zeigt einen Trick, Serien geben Bonus
+  gramReward(st,text,clean){ const d=this.g.dog; const t=N(String(text)).toLowerCase();
+    const act= /jou/.test(t)?'jump': /dans|tourn/.test(t)?'spin': /chant|aboi|parl/.test(t)?'bark': /fatigu|dor|couch/.test(t)?'lie': /aim|gentil|sympa|content/.test(t)?'praise': /assis|regard|écout/.test(t)?'sit': ['jump','spin','paw','bark'][Math.floor(Math.random()*4)];
+    setTimeout(()=>{ try{ d.do(act); }catch(e){} if(act==='lie'||act==='sit') setTimeout(()=>{ try{ d.do('stand'); }catch(e){} },2200); },350);
+    if(!clean){ this.gStreak=0; return; }
+    this.gStreak=(this.gStreak||0)+1; const k=this.gStreak;
+    if(k===3||k===6||k===10||k===15||k===20){ const bonus=k>=10?5:k>=6?3:2; P.treats+=bonus; save(); this.renderTop?.(); this.g.fx.hearts(k>=10?10:6); sfx.chapter?.();
+      this.g.toast?.(`🔥 <b>${k} richtig in Folge!</b> {N} ist begeistert: +${bonus} 🦴`.replace('{N}',N('{N}')),2600);
+      if(k>=10) this.g.celebrate?.(); }
+    else if(k>=2) this.g.toast?.(`🔥 ${k} in Folge`,1000); }
   next(){
     if(this.review){ this.review.i++; if(this.review.gram&&!this.review.exam&&P.gramCur){ if(this.review.i>=this.review.steps.length) delete P.gramCur; else P.gramCur.i=this.review.i; save(); } if(this.review.i>=this.review.steps.length && this.review.exam){ const R=this.review; this.review=null; this.hold=true; const pc=R.max?R.score/R.max:0;
-        const note= pc>=.88?1: pc>=.75?2: pc>=.62?3: pc>=.50?4: pc>=.30?5:6; P.exams=P.exams||[]; P.exams.push({d:Date.now(),s:R.score,m:R.max,n:note}); if(note<=2) P.treats+=5; else P.treats+=2; save(); sfx.chapter(); this.g.fx.hearts(note<=3?8:3); if(note<=3) this.g.celebrate?.(); this.renderTop();
+        const note= pc>=.88?1: pc>=.75?2: pc>=.62?3: pc>=.50?4: pc>=.30?5:6; P.exams=P.exams||[]; P.exams.push({d:Date.now(),s:R.score,m:R.max,n:note}); setTimeout(()=>this.g.badgeCheck?.(),2500); if(note<=2) P.treats+=5; else P.treats+=2; save(); sfx.chapter(); this.g.fx.hearts(note<=3?8:3); if(note<=3) this.g.celebrate?.(); this.renderTop();
         const weak=Object.entries(R.weak||{}).sort((a,b)=>b[1]-a[1]); const LES={'-er-Endungen':'er2','être':'etre','avoir':'avoir','être/avoir':'avoir','Artikel':'art','ne … pas':'neg','mon/ma/mes':'poss'};
         const msg=['','Wahnsinn! 🏆','Sehr gut! 🎉','Gut gemacht! 👍','Bestanden – da geht noch was! 💪','Noch nicht – aber genau dafür üben wir! 💪','Nicht schlimm – fang mit den Lektionen an, dann klappt’s! 💪'][note];
         UI.coco(`<span class="mission">📝 ${R.score} von ${R.max} Punkten → Note <b>${note}</b></span><span class="erz">${msg}</span>${weak.length?`<span class="de">Das solltest du noch üben: ${weak.map(([t,n])=>`<b>${UI.esc(t)}</b> (${n} Fehler)`).join(', ')}</span>`:'<span class="de">Keine Fehler! «Parfait !»</span>'}<span class="note">Die Note ist nur eine Schätzung – aber jede Runde ist anders gemischt. Mehrmals machen lohnt sich!</span>`);
         say(note<=2?'Bravo ! Excellent !':'Bon travail !');
         const ch=[{cls:'sol',html:'📝 Neue Probe-Schulaufgabe',onClick:()=>this.g.startExam?.()}]; const w0=weak.find(([t])=>LES[t]); if(w0) ch.push({html:`📘 ${UI.esc(w0[0])} üben`,onClick:()=>this.startGram(LES[w0[0]])}); ch.push({html:'🐶 Zurück zum Spiel',onClick:()=>{ this.hold=false; delete P.gramCur; save(); this.start(); }});
         UI.chips(ch); return; }
-      if(this.review.i>=this.review.steps.length && this.review.gram){ const id=this.review.gram; this.review=null; this.hold=true; P.gram=P.gram||{}; const first=!P.gram[id]; P.gram[id]=(P.gram[id]||0)+1; if(first) P.treats+=3; save(); sfx.chapter(); this.g.fx.hearts(5); this.g.celebrate?.(); this.renderTop();
+      if(this.review.i>=this.review.steps.length && this.review.gram){ const id=this.review.gram; this.review=null; this.hold=true; P.gram=P.gram||{}; const first=!P.gram[id]; P.gram[id]=(P.gram[id]||0)+1; if(first) P.treats+=3; save(); setTimeout(()=>this.g.badgeCheck?.(),1800); sfx.chapter(); this.g.fx.hearts(5); this.g.celebrate?.(); this.renderTop();
         UI.coco(`<span class="mission fr">Bravo !</span><span class="erz">Lektion geschafft!${first?' +3 🦴':''} Was noch wackelt, kommt in der Wiederholung wieder.</span>`); say('Bravo !');
         const ids=Object.keys(GRAM), nx=id==='mix'?null:ids[ids.indexOf(id)+1];
         UI.chips([ nx&&GRAM[nx]?{cls:'sol',html:`Weiter: ${GRAM[nx].icon} ${GRAM[nx].titel} ➜`,onClick:()=>this.startGram(nx)}:{cls:'sol',html:'📝 Weiter: Probe-Schulaufgabe ➜',onClick:()=>this.g.startExam?.()}, {html:'🔁 Nochmal',onClick:()=>id==='mix'?this.g.openGram?.():this.startGram(id)}, {html:'🐶 Zurück zum Spiel',onClick:()=>{ this.hold=false; delete P.gramCur; save(); this.start(); }} ]); return; }

@@ -30,9 +30,9 @@ export const GRAM = {
     C('Welche Endung gehört zu <b>nous</b> (wir)?','nous jou___',['ons','ent','ez','es'],'ons',{full:'nous jouons',note:'nous → <b>-ons</b> · Eselsbrücke: n<b>o</b>us – <b>o</b>ns'}),
     C('Welche Endung gehört zu <b>vous</b> (ihr)?','vous jou___',['ez','es','ent','ons'],'ez',{full:'vous jouez',note:'vous → <b>-ez</b> · Eselsbrücke: vou<b>s</b> und -e<b>z</b> – beide enden „scharf“'}),
     C('Welche Endung gehört zu <b>ils / elles</b> (sie, mehrere)?','ils jou___',['ent','ons','es','e'],'ent',{full:'ils jouent',note:'ils/elles → <b>-ent</b> – das <b>-ent</b> spricht man NICHT!'}),
-    { type:'conj', verb:'jouer', phase:'pick', erz:'Jetzt «jouer» (spielen). Juna will mit dir spielen – füll die Tabelle!', forms:ER('jou',['spiele','spielst','spielt','spielt'],'spielen') },
+    { type:'conj', verb:'jouer', phase:'pick', erz:'Jetzt «jouer» (spielen). {N} will mit dir spielen – füll die Tabelle!', forms:ER('jou',['spiele','spielst','spielt','spielt'],'spielen') },
     F('Schreib die richtige Form von «regarder» (anschauen): Je ___ la télé.','Je ___ la télé.','regarde',{de:'Ich schaue fern.',hints:['je → <b>-e</b>']}),
-    F('Juna fragt: Tu ___ le chocolat ? (aimer = mögen)','Tu ___ le chocolat ?','aimes',{de:'Magst du Schokolade?',hints:['tu → <b>-es</b>']}),
+    F('{N} fragt: Tu ___ le chocolat ? (aimer = mögen)','Tu ___ le chocolat ?','aimes',{de:'Magst du Schokolade?',hints:['tu → <b>-es</b>']}),
     F('Nous ___ au foot. (jouer)','Nous ___ au foot.','jouons',{de:'Wir spielen Fußball.',hints:['nous → <b>-ons</b>']}),
     F('Vous ___ français ? (parler)','Vous ___ français ?','parlez',{de:'Sprecht ihr Französisch?',hints:['vous → <b>-ez</b>']}),
     F('Les filles ___ un film. (regarder)','Les filles ___ un film.','regardent',{de:'Die Mädchen schauen einen Film.',hints:['„die Mädchen“ = elles → <b>-ent</b>']}),
@@ -40,7 +40,7 @@ export const GRAM = {
     D('Achtung, Sonderfall! Fängt das Verb mit einem Vokal an (a, e, i, o, u – oder h), wird aus «je» ein «j\'»: «j\'aime», «j\'habite», «j\'écoute».'),
     C('Wie heißt es richtig?','___ aime les chiens.',["J'","Je"],"J'",{full:"J'aime les chiens.",de:'Ich mag Hunde.',note:"je + Vokal → <b>j'</b> : j'aime, j'habite"}),
     { type:'conj', verb:'aimer', phase:'type', erz:'Profi-Runde: «aimer» (mögen, lieben) – diesmal schreibst du alles selbst, in gemischter Reihenfolge!', forms:ER('aim',['mag','magst','mag','mögt'],'mögen') },
-    { type:'build', erz:'Bau den Satz: <i>Wir spielen mit Juna.</i>', tiles:['Nous','jouons','avec','Juna','jouez','joue'], answer:'Nous jouons avec Juna', learn:[{fr:'nous jouons',de:'wir spielen',gram:'-er: e · es · e · ons · ez · ent'}] },
+    { type:'build', erz:'Bau den Satz: <i>Wir spielen mit {N}.</i>', tiles:['Nous','jouons','avec','{N}','jouez','joue'], answer:'Nous jouons avec {N}', learn:[{fr:'nous jouons',de:'wir spielen',gram:'-er: e · es · e · ons · ez · ent'}] },
   ]},
 
   er2: { icon:'🎯', titre:'-er : entraînement', titel:'-er-Verben: Endungen-Training', steps:[
@@ -49,7 +49,7 @@ export const GRAM = {
     F("J'___ à Munich. (habiter)","J'___ à Munich.",'habite',{de:'Ich wohne in München.'}),
     F('Elle ___ la radio. (écouter = hören)','Elle ___ la radio.','écoute',{de:'Sie hört Radio.'}),
     F('Nous ___ la porte. (fermer = schließen)','Nous ___ la porte.','fermons',{de:'Wir schließen die Tür.'}),
-    F('Vous ___ Juna ? (chercher = suchen)','Vous ___ Juna ?','cherchez',{de:'Sucht ihr Juna?'}),
+    F('Vous ___ {N} ? (chercher = suchen)','Vous ___ {N} ?','cherchez',{de:'Sucht ihr {N}?'}),
     F('Ils ___ dans le parc. (jouer)','Ils ___ dans le parc.','jouent',{de:'Sie spielen im Park.'}),
     F('On ___ une pizza ? (commander = bestellen)','On ___ une pizza ?','commande',{de:'Bestellen wir eine Pizza?',hints:['on = man → wie il: <b>-e</b>']}),
     F('Tu ___ bien ! (chanter = singen)','Tu ___ bien !','chantes',{de:'Du singst gut!'}),
@@ -65,7 +65,7 @@ export const GRAM = {
     { type:'rapstep', rap:'etre', erz:'Erst der <b>être-Rap</b> – damit bleibt es im Kopf! 🎤' },
     { type:'conj', verb:'être', erz:'Schau dir «être» an und lass es dir vorlesen:', forms:[['je','suis','ich bin'],['tu','es','du bist'],['il/elle/on','est','er/sie/man ist'],['nous','sommes','wir sind'],['vous','êtes','ihr seid / Sie sind'],['ils/elles','sont','sie sind']], tip:'Eselsbrücke: „<b>suis – es – est – sommes – êtes – sont</b>“' },
     { type:'conj', verb:'être', phase:'pick', erz:'Jetzt du! Tippe die richtigen Formen an.', forms:[['je','suis','ich bin'],['tu','es','du bist'],['il/elle/on','est','er/sie/man ist'],['nous','sommes','wir sind'],['vous','êtes','ihr seid'],['ils/elles','sont','sie sind']] },
-    F('Juna ___ un chien. (être)','Juna ___ un chien.','est',{de:'Juna ist ein Hund.'}),
+    F('{N} ___ un chien. (être)','{N} ___ un chien.','est',{de:'{N} ist ein Hund.'}),
     F('Nous ___ en classe. (être)','Nous ___ en classe.','sommes',{de:'Wir sind in der Klasse.'}),
     F('Tu ___ où ? (être)','Tu ___ où ?','es',{de:'Wo bist du?'}),
     F('Vous ___ de Paris ? (être)','Vous ___ de Paris ?','êtes',{de:'Seid ihr aus Paris?'}),
@@ -90,7 +90,7 @@ export const GRAM = {
     { type:'conj', verb:'avoir', erz:'So sieht «avoir» aus:', forms:[["j'",'ai','ich habe'],['tu','as','du hast'],['il/elle/on','a','er/sie/man hat'],['nous','avons','wir haben'],['vous','avez','ihr habt'],['ils/elles','ont','sie haben']], tip:'„<b>ai – as – a – avons – avez – ont</b>“' },
     { type:'conj', verb:'avoir', phase:'pick', erz:'Tippe die richtigen Formen an:', forms:[["j'",'ai','ich habe'],['tu','as','du hast'],['il/elle/on','a','er/sie/man hat'],['nous','avons','wir haben'],['vous','avez','ihr habt'],['ils/elles','ont','sie haben']] },
     F("J'___ un chien. (avoir)","J'___ un chien.",'ai',{de:'Ich habe einen Hund.'}),
-    F('Juna ___ faim ! (avoir)','Juna ___ faim !','a',{de:'Juna hat Hunger!',note:'avoir faim = Hunger haben'}),
+    F('{N} ___ faim ! (avoir)','{N} ___ faim !','a',{de:'{N} hat Hunger!',note:'avoir faim = Hunger haben'}),
     F('Tu ___ un stylo ? (avoir)','Tu ___ un stylo ?','as',{de:'Hast du einen Stift?'}),
     F('Nous ___ un perroquet. (avoir)','Nous ___ un perroquet.','avons',{de:'Wir haben einen Papagei.'}),
     C('sont oder ont? <i>Sie haben eine Katze.</i>','Ils ___ un chat.',['ont','sont'],'ont',{note:'ils <b>ont</b> = sie haben · ils <b>sont</b> = sie sind'}),
@@ -121,9 +121,9 @@ export const GRAM = {
 
   neg: { icon:'🚫', titre:'ne … pas', titel:'Verneinung (nicht)', steps:[
     D('So sagt man „nicht“: Das Verb kommt in ein Sandwich! 🥪 «ne» davor, «pas» dahinter: «Je <b>ne</b> parle <b>pas</b>.» = Ich spreche nicht.',
-      'Vor einem Vokal wird «ne» zu «n\'»: «Je <b>n\'</b>aime <b>pas</b> les chats.» – sagt Juna. 🐶'),
+      'Vor einem Vokal wird «ne» zu «n\'»: «Je <b>n\'</b>aime <b>pas</b> les chats.» – sagt {N}. 🐶'),
     { type:'build', erz:'Bau das Sandwich: <i>Ich spiele nicht.</i>', tiles:['Je','ne','joue','pas'], answer:'Je ne joue pas' },
-    { type:'build', erz:'<i>Juna ist nicht müde.</i> (fatigué = müde)', tiles:['Juna','n\'','est','pas','fatiguée','ne'], answer:"Juna n' est pas fatiguée", hints:['Vor «est» (Vokal): <b>n\'</b>'] },
+    { type:'build', erz:'<i>{N} ist nicht traurig.</i> (triste = traurig)', tiles:['{N}','n\'','est','pas','triste','ne'], answer:"{N} n' est pas triste", hints:['Vor «est» (Vokal): <b>n\'</b>'] },
     C('ne oder n\'?','Tu ___ aimes pas le foot ?',["n'",'ne'],"n'",{note:"Vor Vokal: ne → <b>n'</b>"}),
     C('ne oder n\'?','Nous ___ regardons pas la télé.',['ne',"n'"],'ne'),
     C('Wo steht das «pas»?','Il ne parle ___ .',['pas – nach dem Verb','vor dem Verb'],'pas – nach dem Verb',{fr:null,note:'ne + Verb + pas'}),
@@ -144,6 +144,18 @@ export const GRAM = {
   ]},
 };
 
+// Hundeschul-Rahmen vor jeder Lektion
+const HS={
+  er:'🎓 Willkommen in der <b>Hundeschule</b>! {N} lernt mit dir: Bei jeder richtigen Antwort zeigt {N} einen Trick – oft genau das, was im Satz steht! 🔥 3 richtig in Folge = Bonus-Knochen. Am Ende jeder Lektion gibt es ein Abzeichen und manchmal ein Geschenk für {N}.',
+  er2:'🎓 Hundeschule, Stunde 2! {N} wedelt schon. Schaffst du eine 🔥-Serie von 6?',
+  etre:'🎓 Hundeschule: Heute lernt {N} das wichtigste Verb der Welt. Wenn du être und avoir schaffst, bekommt {N} ein Halstuch! 🧣',
+  avoir:'🎓 Hundeschule: avoir! Noch diese Lektion – dann gibt es das Halstuch für {N}. 🧣',
+  art:'🎓 Hundeschule: Artikel! {N} sitzt brav und hört zu.',
+  neg:'🎓 Hundeschule: Heute sagt {N} auch mal NEIN. 🥪',
+  poss:'🎓 Letzte Stunde! Danach bekommt {N} den Doktorhut 🎩 – und du bist bereit für die Probe-Schulaufgabe.',
+};
+for(const id in HS) GRAM[id].steps.unshift({type:'dialogue',lines:[{who:'Coco',erz:HS[id]}]});
+
 // Schulaufgaben-Mix: zufällige Aufgaben aus allen Lektionen (ohne Erklärungen)
 export function mixLesson(n=14){
   const pool=Object.values(GRAM).flatMap(l=>l.steps.filter(s=>s.type==='fill'||s.type==='choice'||(s.type==='conj'&&s.phase==='type')));
@@ -159,7 +171,7 @@ export function mixLesson(n=14){
 const R=a=>a[Math.floor(Math.random()*a.length)];
 const SH=a=>{ a=[...a]; for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; };
 const VOCAB_DECKS=['salut','famille','ecole','nombres','animaux','couleurs','rue','loisirs','petitsmots','ausrufe'];
-const ERV=[['parler','parl','sprechen','français'],['jouer','jou','spielen','au foot'],['aimer','aim','mögen','les chiens'],['regarder','regard','anschauen','la télé'],['habiter','habit','wohnen','à Paris'],['écouter','écout','hören','de la musique'],['chercher','cherch','suchen','le chat'],['chanter','chant','singen','une chanson'],['danser','dans','tanzen','avec Juna'],['travailler','travaill','arbeiten','beaucoup'],['rester','rest','bleiben','à la maison'],['arriver','arriv','ankommen','à l\'école']];
+const ERV=[['parler','parl','sprechen','français'],['jouer','jou','spielen','au foot'],['aimer','aim','mögen','les chiens'],['regarder','regard','anschauen','la télé'],['habiter','habit','wohnen','à Paris'],['écouter','écout','hören','de la musique'],['chercher','cherch','suchen','le chat'],['chanter','chant','singen','une chanson'],['danser','dans','tanzen','avec {N}'],['travailler','travaill','arbeiten','beaucoup'],['rester','rest','bleiben','à la maison'],['arriver','arriv','ankommen','à l\'école']];
 const PRON=[['je','e'],['tu','es'],['il','e'],['elle','e'],['on','e'],['nous','ons'],['vous','ez'],['ils','ent'],['elles','ent']];
 const ETRE={je:'suis',tu:'es',il:'est',elle:'est',on:'est',nous:'sommes',vous:'êtes',ils:'sont',elles:'sont'};
 const AVOIR={je:'ai',tu:'as',il:'a',elle:'a',on:'a',nous:'avons',vous:'avez',ils:'ont',elles:'ont'};
@@ -191,7 +203,7 @@ const GEN={
     return {type:'choice',erz:`Welcher Artikel? <i>${w.de}</i>`,fr:`___ ${n}`,options:['le','la',"l'",'les'],answer:art,full:w.fr,_topic:'Artikel'}; },
   unUne(){ const it=R([['chien','un','Hund'],['fille','une','Mädchen'],['garçon','un','Junge'],['maison','une','Haus'],['livre','un','Buch'],['copine','une','Freundin'],['chats','des','Katzen (Mehrzahl)'],['stylo','un','Stift'],['école','une','Schule'],['amis','des','Freunde (Mehrzahl)']]);
     return {type:'choice',erz:`un, une oder des? <i>${it[2]}</i>`,fr:`C'est ___ ${it[0]}.`.replace("C'est ___ chats","Ce sont ___ chats").replace("C'est ___ amis","Ce sont ___ amis"),options:['un','une','des'],answer:it[1],_topic:'Artikel'}; },
-  neg(){ const it=R([['Je','parle','allemand','Ich spreche nicht Deutsch.'],['Tu','regardes','la télé','Du schaust nicht fern.'],['Juna','aime','les chats','Juna mag keine Katzen.'],['Nous','jouons','au foot','Wir spielen nicht Fußball.'],['Il','est','fatigué','Er ist nicht müde.'],['Elles','habitent','à Paris','Sie wohnen nicht in Paris.']]);
+  neg(){ const it=R([['Je','parle','allemand','Ich spreche nicht Deutsch.'],['Tu','regardes','la télé','Du schaust nicht fern.'],['{N}','aime','les chats','{N} mag keine Katzen.'],['Nous','jouons','au foot','Wir spielen nicht Fußball.'],['Il','est','fatigué','Er ist nicht müde.'],['Elles','habitent','à Paris','Sie wohnen nicht in Paris.']]);
     const ne=vowel(it[1])?"n'":'ne'; return {type:'build',erz:`Verneine den Satz: <i>${it[3]}</i>`,fr:`${it[0]} ${it[1]} ${it[2]}.`,tiles:[it[0],ne,it[1],'pas',...it[2].split(' '),vowel(it[1])?'ne':"n'"],answer:`${it[0]} ${ne} ${it[1]} pas ${it[2]}`,_topic:'ne … pas'}; },
   poss(){ const it=R([['mein','chien','mon'],['meine','sœur','ma'],['meine (Mz.)','copains','mes'],['dein','livre','ton'],['deine','maison','ta'],['sein/ihr','chat','son'],['seine/ihre','famille','sa'],['meine','amie','mon'],['deine (Mz.)','parents','tes']]);
     const opts={m:['mon','ma','mes'],t:['ton','ta','tes'],s:['son','sa','ses']}[it[2][0]];
@@ -203,5 +215,5 @@ const GEN={
 export function examLesson(){
   const plan=['vocDeFr','vocDeFr','vocDeFr','vocFrDe','vocFrDe','ecoute','vocArt','ending','ending','ending','ending','endingPick','endingPick','etre','etre','etre','avoir','avoir','sontOnt','sontOnt','esEst','article','unUne','unUne','neg','poss','poss','phrase','phrase'];
   USED=new Set(); const steps=SH(plan).map(k=>GEN[k]());
-  return { titre:'Probe-Schulaufgabe', exam:true, steps:[ {type:'dialogue',lines:[{who:'Coco',erz:`Probe-Schulaufgabe! ${steps.length} Aufgaben: Vokabeln, Hören, Endungen, être, avoir, Artikel, Verneinung … Jedes Mal anders gemischt.`},{who:'Coco',erz:'Wie in der echten Schulaufgabe: Tipps (💡) kosten den Punkt. Am Ende bekommst du eine Note – und siehst, was du noch üben solltest. «Bon courage !» 💪'}]}, ...steps ] };
+  return { titre:'Probe-Schulaufgabe', exam:true, steps:[ {type:'dialogue',lines:[{who:'Coco',erz:`Probe-Schulaufgabe! ${steps.length} Aufgaben: Vokabeln, Hören, Endungen, être, avoir, Artikel, Verneinung … Jedes Mal anders gemischt.`},{who:'Coco',erz:'Wie in der echten Schulaufgabe: Tipps (💡) kosten den Punkt. Für jede richtige Antwort zeigt {N} einen Trick, und 🔥-Serien bringen Bonus-Knochen. Am Ende bekommst du eine Note – und siehst, was du noch üben solltest. «Bon courage !» 💪'}]}, ...steps ] };
 }

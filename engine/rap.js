@@ -10,7 +10,7 @@ export const RAPS = {
     [['fr','je joue, tu joues, elle joue']],
     [['fr','nous jouons, vous jouez, elles jouent']],
     [['de','E! E S! E!','-e · -es · -e'],['de','O N S! E Z! E N T!','· -ons · -ez · -ent !']],
-    [['de','Wuff! sagt Juna – jetzt kannst du es!']],
+    [['de','Wuff! sagt dein Hund – jetzt kannst du es!']],
   ]},
   etre: { title:'Der être-Rap', bpm:94, lines:[
     [['fr','je suis, tu es, il est']],
@@ -24,7 +24,7 @@ export const RAPS = {
   avoir: { title:'Der avoir-Rap', bpm:94, lines:[
     [['fr',"j'ai, tu as, il a"]],
     [['fr','nous avons, vous avez, ils ont']],
-    [['fr','ai, as, a'],['de','Juna ist da!']],
+    [['fr','ai, as, a'],['de','der Hund ist da!']],
     [['fr','avons, avez, ont'],['de','und schon gekonnt!']],
     [['de','Achtung:'],['fr','ils ont'],['de','heißt haben,'],['fr','ils sont'],['de','heißt sind!']],
     [['de','avoir heißt haben – jetzt kannst du es sagen!']],

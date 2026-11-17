@@ -43,6 +43,11 @@ export const BADGES=[
   { id:'pet25', pic:'🤗', fr:'Câlins',            de:'25-mal gestreichelt',         have:()=>P.stats.pet||0, need:25 },
   { id:'fetch10', pic:'🎾', fr:'Champion de la balle', de:'10-mal Ball geholt',     have:()=>P.stats.fetch||0, need:10 },
   { id:'shop1', pic:'🛍️', fr:'Premier achat',     de:'Zum ersten Mal eingekauft',   have:()=>P.stats.bought||0, need:1 },
+  { id:'g_er',   pic:'🔤', fr:'Roi des verbes',   de:'Beide -er-Lektionen geschafft', have:()=>['er','er2'].filter(x=>P.gram?.[x]).length, need:2, reward:'casquette' },
+  { id:'g_etre', pic:'⭐', fr:'Être et avoir',     de:'être und avoir geschafft',      have:()=>['etre','avoir'].filter(x=>P.gram?.[x]).length, need:2, reward:'bandana' },
+  { id:'g_all',  pic:'🎓', fr:'Pro de la grammaire', de:'Alle Grammatik-Lektionen',   have:()=>['er','er2','etre','avoir','art','neg','poss'].filter(x=>P.gram?.[x]).length, need:7, reward:'chapeau' },
+  { id:'g_ex1',  pic:'📝', fr:'Premier examen',    de:'Erste Probe-Schulaufgabe',      have:()=>(P.exams||[]).length, need:1, reward:'noeud' },
+  { id:'g_ex2',  pic:'🏆', fr:'Note excellente',   de:'Probe-Schulaufgabe mit Note 1 oder 2', have:()=>(P.exams||[]).filter(e=>e.n<=2).length, need:1, reward:'couronne' },
   { id:'mode',  pic:'🕶️', fr:'Chien à la mode',   de:'Etwas angezogen',             have:()=>Object.keys(P.wear||{}).length, need:1 },
 ];
 const needOf=b=>typeof b.need==='function'?b.need():b.need;
