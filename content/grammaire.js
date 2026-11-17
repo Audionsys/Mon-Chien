@@ -362,3 +362,61 @@ const SETS={
 export function fetchSet(set='er',n=8){ const S=SETS[set]||SETS.er; const out=[]; let last=''; const pool=S.init?S.init():null;
   for(let k=0;k<200&&out.length<n;k++){ const r=S.make(pool); if(r.ans===last) continue; last=r.ans; out.push(r); }
   return { labels:pool?pool.map(i=>NUMW[i]):S.labels, tip:S.tip, rounds:out }; }
+
+// =============================================================
+//  ERKLÄRUNGEN BEI FEHLERN: Was war falsch – und wie geht es richtig (mit Beispiel)
+// =============================================================
+const strip=x=>String(x||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().trim();
+const ENDS=['ent','ons','ez','es','e'];
+const ENDWHO={e:'je und il/elle/on',es:'tu',ons:'nous',ez:'vous',ent:'ils/elles'};
+const ENDEX={e:'je parle · il joue',es:'tu parles · tu joues',ons:'nous parlons · nous jouons',ez:'vous parlez · vous jouez',ent:'ils parlent · elles jouent'};
+const PRONS=['je',"j'",'tu','il','elle','on','nous','vous','ils','elles'];
+// Subjekt vor der Lücke erkennen → Pronomen
+export function subjectOf(fr){ const pre=String(fr||'').split('___')[0].replace(/^(oui|non),?\s*/i,'').trim(); const low=pre.toLowerCase();
+  const last=low.split(/\s+/).pop().replace(/['’]$/,"'");
+  if(last==="j'"||low.endsWith("j'")) return {p:'je',s:pre};
+  if(PRONS.includes(last)) return {p:last,s:pre};
+  if(/ et |^les |^des /.test(low+' ')) return {p:'ils',s:pre,many:true};
+  if(!pre) return null;
+  return {p:'il',s:pre,name:true}; }
+const pWho=S=>S.name?`«${S.s}» (eine Person/ein Ding = wie il/elle)`:S.many?`«${S.s}» (mehrere = wie ils/elles)`:`«${S.s}»`;
+const endOf=w=>{ const n=strip(w); return ENDS.find(e=>n.endsWith(e)); };
+const ETREF={je:'suis',tu:'es',il:'est',elle:'est',on:'est',nous:'sommes',vous:'êtes',ils:'sont',elles:'sont'};
+const AVOIRF={je:'ai',tu:'as',il:'a',elle:'a',on:'a',nous:'avons',vous:'avez',ils:'ont',elles:'ont'};
+const whoHas=(map,form)=>Object.keys(map).filter(k=>strip(map[k])===strip(form)).map(k=>k==='je'&&map===AVOIRF?"j'":k);
+const box=(t)=>`<span class="expl">🧠 ${t}</span>`;
+
+export function explain(st,given){
+  const want=String([].concat(st.answer||'')[0]||''), g=String(given||'').trim(); if(!want) return '';
+  const W=strip(want), G=strip(g); const S=subjectOf(st.fr||''); const full=(st.full||(st.fr?st.fr.replace('___',want).replace("' ","'"):''));
+  const ex= full? `<br>✅ Richtig: <b class="fr">${full}</b>`:`<br>✅ Richtig: <b class="fr">${want}</b>`;
+  // nur Akzent falsch
+  if(G===W && g!==want) return box(`Fast! Nur der <b>Akzent</b> fehlt oder ist falsch: <b class="fr">${want}</b>. ${/è/.test(want)?'Bei je/tu/il/ils (stumme Endung) steht <b>è</b>.':/é/.test(want)?'Bei nous/vous (hörbare Endung) bleibt das <b>é</b>.':''}`);
+  // être / avoir
+  const inE=Object.values(ETREF).map(strip), inA=Object.values(AVOIRF).map(strip);
+  if((inE.includes(W)||inA.includes(W))&&S&&g){ const verb=inE.includes(W)?'être':'avoir', map=verb==='être'?ETREF:AVOIRF, other=verb==='être'?AVOIRF:ETREF;
+    if(Object.values(other).map(strip).includes(G)&&!Object.values(map).map(strip).includes(G)) return box(`«${g}» ist eine Form von <b>${verb==='être'?'avoir (haben)':'être (sein)'}</b>. Gesucht ist <b>${verb}</b> (${verb==='être'?'sein':'haben'}).${verb==='être'?' Merke: ils <b>sont</b> = sie sind · ils <b>ont</b> = sie haben.':' Merke: ils <b>ont</b> = sie haben · ils <b>sont</b> = sie sind.'}${ex}`);
+    const who=whoHas(map,g); if(who.length) return box(`«${g}» gehört zu <b>${who.join(' / ')}</b>. Hier ist das Subjekt ${pWho(S)} → <b class="fr">${S.p==='je'&&verb==='avoir'?"j'":S.p} ${map[S.p]}</b>.${G==='es'||W==='es'?' Achtung: tu <b>es</b> (ohne t) · il <b>est</b> (mit t).':''}${ex}`);
+    return box(`Bei <b>${verb}</b> heißt es mit ${pWho(S)}: <b class="fr">${map[S.p]}</b>. Sag die Reihe auf: ${Object.entries(map).filter(([k])=>!['elle','on','elles'].includes(k)).map(([k,v])=>`${k} ${v}`).join(' · ')}${ex}`); }
+  // -er-Endungen (auch préférer/acheter)
+  const we=endOf(want); const stem=we? strip(want).slice(0,-we.length):'';
+  if(we&&S&&stem.length>=3&&G.startsWith(stem.slice(0,3))){ const gr=strip(g).startsWith(stem)? strip(g).slice(stem.length):null;
+    if(gr==='') return box(`Du hast nur den <b>Stamm</b> geschrieben (${stem}). Es fehlt die Endung! Zu ${pWho(S)} gehört <b>-${we}</b>.${ex}`);
+    if(gr&&ENDS.includes(gr)) return box(`Die Endung <b>-${gr}</b> gehört zu <b>${ENDWHO[gr]}</b>. Hier ist das Subjekt ${pWho(S)} → Endung <b>-${we}</b>.<br>Beispiel: <span class="fr">${ENDEX[we]}</span>${ex}`);
+    if(gr==='er') return box(`«${g}» ist die <b>Grundform</b> (Infinitiv). Im Satz musst du konjugieren: ${pWho(S)} → <b>-${we}</b>.<br>Beispiel: <span class="fr">${ENDEX[we]}</span>${ex}`);
+    return box(`Achte auf die Endung: Zu ${pWho(S)} gehört <b>-${we}</b>. Merkspruch: E – ES – E, ONS – EZ – ENT.${ex}`); }
+  // Artikel
+  const art=['le','la',"l'",'les'], ind=['un','une','des'], pos=['mon','ma','mes','ton','ta','tes','son','sa','ses'];
+  const after=String(st.fr||'').split('___')[1]?.trim()||''; const noun=after.split(/\s+/)[0]?.replace(/[.!?]/g,'')||''; const voc=/^[aeiouhéèê]/i.test(noun);
+  if(art.includes(want)){ let why= want==="l'"?`«${noun}» fängt mit einem <b>Vokal</b> an → <b>l'</b> (aus le/la wird l').`: want==='les'?`«${noun}» ist <b>Mehrzahl</b> → immer <b>les</b>, egal ob männlich oder weiblich.`:`«${noun}» ist im Französischen <b>${want==='le'?'männlich':'weiblich'}</b> → <b>${want}</b>.${g==="l'"?' l\' steht nur vor einem Vokal.':''} Tipp: Lern Nomen immer mit Artikel!`;
+    return box(why+ex); }
+  if(ind.includes(want)) return box((want==='des'?`Mehrzahl → <b>des</b> (im Deutschen oft gar kein Wort: „Katzen“).`:`«${noun}» ist <b>${want==='un'?'männlich':'weiblich'}</b> → <b>${want}</b>.`)+ex);
+  if(pos.includes(want)){ const base={m:'mon',t:'ton',s:'son'}[want[0]]; return box((voc&&want===base?`«${noun}» fängt mit Vokal an → <b>${want}</b>, auch wenn das Wort weiblich ist (sonst stoßen zwei Vokale aneinander).`:want.endsWith('es')?`Mehrzahl → <b>${want}</b>.`:want.endsWith('a')?`«${noun}» ist <b>weiblich</b> → <b>${want}</b>.`:`«${noun}» ist <b>männlich</b> → <b>${want}</b>.`)+ ' Wichtig: Es richtet sich nach dem <b>Ding</b>, nicht nach der Person!'+ex); }
+  if(want==='ne'||want==="n'") return box((want==="n'"?`Das Verb fängt mit einem <b>Vokal</b> an → <b>n'</b> statt ne.`:`Das Verb fängt mit einem <b>Konsonanten</b> an → <b>ne</b>. n' nur vor Vokal.`)+' Sandwich: ne + Verb + pas.'+ex);
+  if(want==='Il y a'||want==='il y a') return box('«il y a» = <i>es gibt</i> – es bleibt immer gleich, egal wie viele Dinge. «il est» = er ist, «il a» = er hat.'+ex);
+  if(/Qui est-ce/.test(want)) return box('Bei <b>Personen</b> (und Tieren mit Namen) fragt man <b>Qui est-ce ?</b> = Wer ist das? Bei Sachen: Qu\'est-ce que c\'est ?'+ex);
+  if(/Qu'est-ce que/.test(want)) return box('Bei <b>Sachen</b> fragt man <b>Qu\'est-ce que c\'est ?</b> = Was ist das? Bei Personen: Qui est-ce ?'+ex);
+  if(NUMW.includes(want)){ const i=NUMW.indexOf(want); const tip= i>=17&&i<=19?'17–19 werden zusammengesetzt: dix-sept (10+7), dix-huit, dix-neuf – mit Bindestrich.': i===21||i===31?'Bei 21 und 31 steht «et»: vingt et un, trente et un – ohne Bindestrich.': i>21?'Ab 22 mit Bindestrich: vingt-deux, vingt-trois …': /x$/.test(want)?'Endet auf x!':/q$/.test(want)?'Endet auf q!':/gt$/.test(want)?'vingt schreibt man mit gt.':'';
+    return box(`${i} = <b class="fr">${want}</b>. ${tip}`); }
+  if(JOURS.includes(want)){ const k=JOURS.indexOf(want); return box(`Die Reihenfolge: ${JOURS.map((j,x)=>x===k?`<b>${j}</b>`:j).join(' · ')}. <b>${want}</b> = ${JDE[k]}. Wochentage schreibt man <b>klein</b>.`); }
+  return box(`Richtig ist <b class="fr">${want}</b>${full&&full!==want?` – also: <span class="fr">${full}</span>`:''}.`); }

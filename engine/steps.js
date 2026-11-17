@@ -2,7 +2,7 @@
 import { COURSE } from '../content/course.js';
 import { COMMANDS } from '../content/commands.js';
 import { DECKS } from '../content/vocab.js';
-import { GRAM, fetchSet } from '../content/grammaire.js';
+import { GRAM, fetchSet, explain } from '../content/grammaire.js';
 import { parseCommand, checkAnswer, missingAccent, norm } from './lang.js';
 import { P, save, learn, dueItems, snapshot } from './progress.js';
 import { say, sfx } from './audio.js';
@@ -96,7 +96,7 @@ export class Runner {
         P.treats+=1; save(); this.g.dog.happy(1200); this.complete(st,{extra:acc}); return; }
       this.refresh(acc); return; }
     this.cTry++; sfx.soft_no(); this.g.dog.tilt(); learn('g:'+st.verb+':'+f[0],{kind:'word',fr:`${f[0]}${f[0].endsWith("'")?'':' '}${f[1]}`,de:f[2]||st.verb,gram:st.verb},0);
-    this.refresh(UI.tipLine(this.cTry>=2? `Richtig ist: <b class="fr">${UI.esc(f[0])} ${UI.esc(f[1])}</b> – tipp/schreib es ab!` : `Nicht ganz – schau noch mal genau hin!`)); }
+    const pr=f[0].split('/')[0].replace("'",''); const ex=explain({fr:`${pr==='j'?'je':pr} ___`,answer:f[1]},raw); this.showExpl(); this.refresh((this.cTry>=2? UI.tipLine(`Tipp oder schreib es ab: <b class="fr">${UI.esc(f[0])} ${UI.esc(f[1])}</b>`):'')+(ex||UI.tipLine('Nicht ganz – schau noch mal genau hin!'))); }
   songCard(back){ this.hold=true; const html=SONG.lyrics.split('\n').map(l=>l.startsWith('[')?`<span class="songh">${UI.esc(l.replace(/[\[\]]/g,''))}</span>`:l.trim()?`<span class="songl">${/[àâçéèêîôûœ]|\b(je|tu|il|elle|nous|vous|ils|elles|j'ai|mon|on y)\b/i.test(l)&&!/heißt|hör|Achtung|Mein Hund|Endung|doch|Falle/.test(l)?`<b class="fr">${UI.esc(l)}</b>`:UI.esc(l)}</span>`:'').join('');
     UI.coco(`<span class="who">🎵 ${UI.esc(SONG.title)}</span><div class="songbox">${html}</div>`,{chirp:false});
     const fin=()=>{ UI.chips([{cls:'sol',html:'🔁 Nochmal',onClick:()=>this.songCard(back)}, back?{html:'Weiter ➜',onClick:()=>{ stopSong(); this.next(); }}:{html:'📘 Grammatik',onClick:()=>this.g.openGram?.()}]); };
@@ -106,11 +106,13 @@ export class Runner {
     const done=()=>{ if(back&&this.step===back){ this.refresh(); } };
     draw(-1); UI.chips([{cls:'sol',html:'⏹ Stopp',onClick:()=>{ stopRap(); }},{html:'🔁 Nochmal',onClick:()=>{ stopRap(); this.rapCard(id,back); }}]);
     playRap(id,{rounds:2,onLine:i=>{ draw(i); setTimeout(()=>UI.scrollInBubble?.(document.querySelector('#bubble .rapl.on')),30); this.g.dog?.happy?.(500); },onEnd:()=>{ if(back) setTimeout(done,50); else { UI.chips([{cls:'sol',html:'🔁 Nochmal',onClick:()=>this.rapCard(id)},{html:'📘 Grammatik',onClick:()=>this.g.openGram?.()}]); } }}); }
+  showExpl(){ setTimeout(()=>UI.scrollInBubble(document.querySelector('#bubble .expl')),60); }
+  noteMistake(st,given){ const R=this.review; if(!R?.exam) return; R.mist=R.mist||[]; if(R.mist.some(m=>m.st===st)) return; R.mist.push({st,given:String(given)}); }
   lAnswer(st,o){ const q=st.qs[this.lq]; if(!q) return;
     if(o===q.answer){ sfx.success(); this.g.fx.hearts(2); this.lBad=new Set(); this.lq++;
       const ok=UI.tipLine(`✅ <b>${UI.esc(N(q.answer))}</b>${q.why?` – ${UI.esc(q.why)}`:''}`);
       if(this.lq>=st.qs.length){ this.complete(st,{extra:ok}); this.g.dog.happy(1500); } else { this.refresh(ok); this.g.dog.happy(800); } }
-    else { this.lBad.add(o); this.wrong++; this.miss(UI.tipLine(`Nicht ganz – lies noch mal genau nach!${q.why&&this.lBad.size>=2?` Tipp: ${UI.esc(q.why)}`:''}`)); } }
+    else { this.lBad.add(o); this.wrong++; this.noteMistake({fr:N(q.q),answer:q.answer,_topic:st._topic||'Lesen'},o); this.miss(UI.tipLine(`Nicht ganz – lies noch mal genau nach!${q.why?` <br>🔎 Such im Text: <b class="fr">${UI.esc(q.why)}</b>`:''}`)); } }
   tapBone(id){ const st=this.step; if(!st||st.type!=='apporte'||this.aBusy) return; const r=this.aR[this.aI]; const lb=id.slice(4);
     this.aBusy=true; UI.chips([]); const sp=P.step, ri=this.aI;
     const done=()=>{ if(this.step!==st||this.aI!==ri) return; setTimeout(()=>this.g.endBones?.reset(id),700);
@@ -119,10 +121,13 @@ export class Runner {
         this.gStreak=(this.gStreak||0)+1; if(this.gStreak>=3&&this.gStreak%3===0){ P.treats+=2; save(); this.g.toast?.(`🔥 <b>${this.gStreak} in Folge!</b> +2 🦴`,1800); }
         this.refresh(UI.tipLine(`✅ <b class="fr">${UI.esc(full)}</b>`));
         setTimeout(()=>{ if(this.step!==st) return; this.aI++; this.aBusy=false; if(this.aI>=this.aR.length){ this.g.endBones?.clear(); this.complete(st,{extra:UI.tipLine(`${this.aOk} Knochen richtig geholt! 🦴`)}); } else this.refresh(); },1700); }
-      else { this.aErr++; this.wrong++; this.gStreak=0; sfx.soft_no(); this.g.dog.tilt(); this.aBusy=false; this.refresh(UI.tipLine(`Hm, <b class="fr">${UI.esc(lb)}</b> passt hier nicht. ${UI.esc(this.aTip||'')}`)); } };
+      else { this.aErr++; this.wrong++; this.gStreak=0; sfx.soft_no(); this.g.dog.tilt(); this.aBusy=false; const full=N(`${r.pre}${r.ans}${r.post}`).replace(/^(\S+') /,'$1'); let ex;
+        if(st.set==='er'||!st.set){ const m=N(r.pre).match(/^(.*?['\s])?(\S+)$/)||['','',N(r.pre)]; const sub=(m[1]||'').trim(), stem=m[2]; ex=explain({fr:`${sub} ___${r.post}`,answer:stem+r.ans,full},stem+lb); }
+        else ex=explain({fr:N(`${r.pre}___${r.dpost||r.post}`),answer:r.ans,full},lb);
+        this.showExpl(); this.refresh(ex||UI.tipLine(`Hm, <b class="fr">${UI.esc(lb)}</b> passt hier nicht. ${UI.esc(this.aTip||'')}`)); } };
     if(this.g.endBones){ this.g.endBones.fetch(id,done); setTimeout(()=>{ if(this.aBusy&&this.aI===ri&&this.step===st&&this.g.onFetched){ const f=this.g.onFetched; this.g.onFetched=null; f(); } },9000); } else done(); }
   startGram(id,list,at=0){ this.gStreak=0; const L=list||GRAM[id]; this.freeplay=false; this.review={steps:L.steps,i:at,gram:id,title:L.titre,exam:!!L.exam}; if(L.sc) Object.assign(this.review,L.sc); P.gramCur= GRAM[id]? {id,i:at} : {id,i:at,titre:L.titre,exam:!!L.exam,steps:L.steps}; save(); UI.closeSheet?.(); this.begin(); }
-  miss(extra){ if(this.review?.gram){ this.gStreak=0; this.g.dog.tilt(); } if(Math.random()<0.4) setTimeout(()=>this.g.quip?.('oops'),2200); this.wrong++; this.hint=Math.min(this.ladder(this.step).length, Math.max(this.hint, 1) + (this.wrong>1?1:0)); sfx.soft_no(); this.refresh(extra); }
+  miss(extra){ if(this.review?.gram){ this.gStreak=0; this.g.dog.tilt(); this.showExpl(); } if(Math.random()<0.4) setTimeout(()=>this.g.quip?.('oops'),2200); this.wrong++; this.hint=Math.min(this.ladder(this.step).length, Math.max(this.hint, 1) + (this.wrong>1?1:0)); sfx.soft_no(); this.refresh(extra); }
 
   // ---- geschafft ----
   complete(st,{extra='',sayText}={}){
@@ -162,7 +167,7 @@ export class Runner {
         const note= pc>=.88?1: pc>=.75?2: pc>=.62?3: pc>=.50?4: pc>=.30?5:6; P.exams=P.exams||[]; P.exams.push({d:Date.now(),s:R.score,m:R.max,n:note}); setTimeout(()=>this.g.badgeCheck?.(),2500); if(note<=2) P.treats+=5; else P.treats+=2; save(); sfx.chapter(); this.g.fx.hearts(note<=3?8:3); if(note<=3) this.g.celebrate?.(); this.renderTop();
         const weak=Object.entries(R.weak||{}).sort((a,b)=>b[1]-a[1]); const LES={'-er-Endungen':'er2','être':'etre','avoir':'avoir','être/avoir':'avoir','Artikel':'art','ne … pas':'neg','mon/ma/mes':'poss'};
         const msg=['','Wahnsinn! 🏆','Sehr gut! 🎉','Gut gemacht! 👍','Bestanden – da geht noch was! 💪','Noch nicht – aber genau dafür üben wir! 💪','Nicht schlimm – fang mit den Lektionen an, dann klappt’s! 💪'][note];
-        UI.coco(`<span class="mission">📝 ${R.score} von ${R.max} Punkten → Note <b>${note}</b></span><span class="erz">${msg}</span>${weak.length?`<span class="de">Das solltest du noch üben: ${weak.map(([t,n])=>`<b>${UI.esc(t)}</b> (${n} Fehler)`).join(', ')}</span>`:'<span class="de">Keine Fehler! «Parfait !»</span>'}<span class="note">Die Note ist nur eine Schätzung – aber jede Runde ist anders gemischt. Mehrmals machen lohnt sich!</span>`);
+        UI.coco(`<span class="mission">📝 ${R.score} von ${R.max} Punkten → Note <b>${note}</b></span><span class="erz">${msg}</span>${weak.length?`<span class="de">Das solltest du noch üben: ${weak.map(([t,n])=>`<b>${UI.esc(t)}</b> (${n} Fehler)`).join(', ')}</span>`:'<span class="de">Keine Fehler! «Parfait !»</span>'}${(R.mist||[]).length?`<span class="mission" style="display:block;margin-top:8px">📋 Deine Fehler – so geht's richtig:</span>${R.mist.slice(0,12).map(m=>`<span class="mistk">${m.st.fr?`<span class="fr">${UI.esc(N(m.st.fr))}</span><br>`:''}❌ <s>${UI.esc(m.given)}</s> ${m.st.type==='lire'?`✅ <b>${UI.esc(N([].concat(m.st.answer)[0]))}</b>`:(explain(m.st,m.given)||`✅ <b class="fr">${UI.esc(N([].concat(m.st.answer)[0]))}</b>`)}</span>`).join('')}`:''}<span class="note">Die Note ist nur eine Schätzung – aber jede Runde ist anders gemischt. Mehrmals machen lohnt sich!</span>`);
         say(note<=2?'Bravo ! Excellent !':'Bon travail !');
         const ch=[{cls:'sol',html:'📝 Neue Probe-Schulaufgabe',onClick:()=>this.g.startExam?.()}]; const w0=weak.find(([t])=>LES[t]); if(w0) ch.push({html:`📘 ${UI.esc(w0[0])} üben`,onClick:()=>this.startGram(LES[w0[0]])}); ch.push({html:'🐶 Zurück zum Spiel',onClick:()=>{ this.hold=false; delete P.gramCur; save(); this.start(); }});
         UI.chips(ch); return; }
@@ -363,7 +368,7 @@ const H = {
     start(st){ this.opts=shuffle(st.options.slice()); this.bad=new Set(); UI.setInputMode('text','Antippen, schreiben oder sagen …'); this.refresh(); sayStep(st); },
     render(st,extra=''){ this.prompt(st,extra);
       UI.chips([...this.opts.map(o=>({cls:'fr ans opt'+(this.bad.has(o)?' bad':''),html:UI.esc(N(o)),onClick:()=>{
-          if(norm(o)===norm(st.answer)) this.complete(st,{sayText:st.answer}); else { this.bad.add(o); this.miss(UI.tipLine(`<b class="fr">${UI.esc(o)}</b> passt hier nicht – probier's nochmal!`)); } }})),
+          if(norm(o)===norm(st.answer)) this.complete(st,{sayText:st.answer}); else { this.bad.add(o); this.noteMistake(st,o); this.miss((this.review?.gram&&explain(st,o))||UI.tipLine(`<b class="fr">${UI.esc(o)}</b> passt hier nicht – probier's nochmal!`)); } }})),
         ...this.helpChip(st)]); },
   },
 
@@ -371,8 +376,8 @@ const H = {
     start(st){ UI.setInputMode('text','Ta réponse…'); this.refresh(); sayStep(st); },
     render(st,extra=''){ this.prompt(st,extra); UI.chips(this.helpChip(st)); },
     input(st,raw){ const r= st.strict? (()=>{ const w=st.answer.find(a=>norm(a)===norm(raw.replace(/[.!?]+$/,''))); return w?{ok:true,exact:!missingAccent(raw,w),want:w}:{ok:false}; })() : checkAnswer(raw,st.answer);
-      if(r.ok){ this.complete(st,{extra: r.exact?'':UI.tipLine(`😊 <b class="fr">Presque !</b> Richtig ist: <b class="fr">${r.want}</b>`), sayText:r.want}); return true; }
-      this.miss(UI.tipLine(`<b class="fr">« ${UI.esc(raw)} »</b> passt nicht in die Lücke.`)); return true; },
+      if(r.ok){ this.complete(st,{extra: r.exact?'':((this.review?.gram&&explain({...st,answer:[r.want]},raw))||UI.tipLine(`😊 <b class="fr">Presque !</b> Richtig ist: <b class="fr">${r.want}</b>`)), sayText:r.want}); return true; }
+      this.noteMistake(st,raw); this.miss((this.review?.gram&&explain(st,raw))||UI.tipLine(`<b class="fr">« ${UI.esc(raw)} »</b> passt nicht in die Lücke.`)); return true; },
   },
 
   build:{
