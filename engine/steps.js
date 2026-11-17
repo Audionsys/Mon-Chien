@@ -322,8 +322,8 @@ const H = {
     start(st){ this.aR=fetchRounds(st.n||8); this.aI=0; this.aOk=0; this.aBusy=false; this.aErr=0; UI.setInputMode('text','Endung …');
       this.g.endBones?.place(['e','es','ons','ez','ent']); this.refresh(); },
     render(st,extra=''){ const r=this.aR[this.aI]; if(!r) return;
-      UI.coco(`${this.aI===0?`<span class="erz">${weave(st.erz||'')}</span>`:''}<span class="tutostep" style="display:inline-block">🦴 ${this.aI+1}/${this.aR.length}</span><span class="mission fr" style="display:block;margin-top:4px">${UI.esc(r.sub)}${r.sub.endsWith("'")?'':' '}<b>${UI.esc(r.stem)}<span style="color:#e07b39">___</span></b> ${UI.esc(r.obj)}</span><span class="de">${UI.esc(r.inf)} = ${UI.esc(r.de)} · Welche Endung? Tippe auf den Knochen!</span>${extra}`,{chirp:false});
-      UI.chips(this.aErr>=2?[{cls:'help',html:`💡 ${UI.esc(r.pron)} → -${UI.esc(r.end)}`,onClick:()=>{}}]:[]); },
+      UI.coco(`${this.aI===0?`<span class="erz">${weave(st.erz||'')}</span>`:''}<span class="tutostep" style="display:inline-block">🦴 ${this.aI+1}/${this.aR.length}</span><span class="mission fr" style="display:block;margin-top:4px">${UI.esc(r.sub)}${r.sub.endsWith("'")?'':' '}<b>${UI.esc(r.stem)}<span style="color:#e07b39">___</span></b> ${UI.esc(r.obj)}</span><span class="de">${UI.esc(r.inf)} = ${UI.esc(r.de)} · Tippe auf einen Knochen im Zimmer oder unten auf eine Endung!</span>${extra}`,{chirp:false});
+      UI.chips(['e','es','ons','ez','ent'].map(e=>({cls:'ans fr',html:'-'+e,onClick:()=>this.tapBone('end:'+e)})).concat(this.aErr>=2?[{cls:'help',html:`💡 ${UI.esc(r.pron)} → -${UI.esc(r.end)}`,onClick:()=>{}}]:[])); },
     input(st,raw){ const e=raw.trim().replace(/^-/,'').toLowerCase(); if(['e','es','ons','ez','ent'].includes(e)){ this.tapBone('end:'+e); return true; } return false; },
   },
   // Konjugation auswendig lernen: Tabelle ansehen → per Antippen → selbst schreiben
