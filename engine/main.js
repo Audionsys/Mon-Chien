@@ -13,6 +13,7 @@ import { COURSE } from '../content/course.js';
 import { WORLD } from '../content/world.js';
 import { BETISES } from '../content/betises.js';
 import { DECKS } from '../content/vocab.js';
+import { GRAM, mixLesson, examLesson } from '../content/grammaire.js';
 import { BANTER } from '../content/banter.js';
 import { learn } from './progress.js';
 import { ITEMS } from '../content/items.js';
@@ -25,7 +26,7 @@ import { DOGS, DOG, chooseDog } from '../content/dog.js';
 import { createAdventure } from './mission.js';
 const { $, N, esc } = UI;
 
-UI.setNameFn(()=>P.name||'Filou'); UI.setNamedFn(()=>!!P.name); UI.setFemFn(()=>P.gender==='f');
+UI.setNameFn(()=>P.name||'Filou'); UI.setNamedFn(()=>!!P.name); UI.setFemFn(()=>{ if(P.gender!=='f') return false; try{ return !run.review?.gram; }catch(e){ return true; } });
 const world=createWorld($('c'));
 let room=buildWorld(world, WORLD);
 const roomDef=id=>WORLD.rooms.find(r=>r.id===id);
@@ -37,7 +38,7 @@ A.preloadMusic('music.mp3');
 function headScreen(){ const p=dog.headWorld(); p.y+=0.22; p.project(world.camera); return {x:(p.x*0.5+0.5)*innerWidth, y:(-p.y*0.5+0.5)*innerHeight}; }
 const fx={ hearts(n=3){ const s=headScreen(); UI.floatFx(s.x,s.y,['❤️','💛','✨','🧡'],n); } };
 dog.on('say',(t,ms)=>UI.dogSay(t,ms)); dog.on('hearts',n=>fx.hearts(n));
-export const VERSION='61';
+export const VERSION='62';
 try{ document.getElementById('ver').textContent='v'+VERSION; }catch(e){}
 function toast(html,ms=2600){ const t=$('toast'); t.innerHTML=N(html); t.classList.add('on'); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('on'),ms); }
 
@@ -54,7 +55,7 @@ $('cocoAv').addEventListener('click',()=>{ const t=$('bubble').querySelector('.m
 function screenOf(id){ const p=room.props.get(id); if(!p||!p.object) return null; const b=new THREE.Box3().setFromObject(p.object); const c=b.getCenter(new THREE.Vector3()); c.y=(c.y+b.max.y)/2;
   c.project(world.camera); if(c.z>1||Math.abs(c.x)>1.05||Math.abs(c.y)>1.05) return null; return {x:(c.x+1)/2*innerWidth, y:(1-c.y)/2*innerHeight}; }
 g.cocoPoint=(id)=>{ const s=screenOf(id); if(s) Coco.pointAt(s.x,s.y); };
-g.celebrate=()=>Coco.celebrate(); g.openDogs=openDogs;
+g.celebrate=()=>Coco.celebrate(); g.openDogs=openDogs; g.openGram=()=>openGram(); g.startExam=()=>startExam();
 const run=new Runner(g);
 // ---------- Abenteuer (Prototyp) ----------
 function giveSausage(ms=2200){ const m=new THREE.Mesh(new THREE.CapsuleGeometry(0.035,0.16,4,10),new THREE.MeshStandardMaterial({color:'#a5473f',roughness:0.6})); m.rotation.z=Math.PI/2;
@@ -107,7 +108,7 @@ function openWeek(){ const W=weekReport(); const max=Math.max(1,...W.dayN);
 dog.on('kiss',()=>{ fx.hearts(16); A.sfx.pop(); A.sfx.applause?.(); const k=document.createElement('div'); k.className='kiss'; k.textContent='💋'; document.body.appendChild(k); setTimeout(()=>k.remove(),1600); });
 { const _do=dog.do.bind(dog); dog.doRaw=_do; dog.do=(a,ctx)=>{ if(a&&a.do==='trick'&&!P.tricks[a.id]&&!testMode){ const t=TRICKS.find(x=>x.id===a.id); dog.tilt();
       toast(`🦜 Das kann {N} noch nicht! Bei <b>${t.need} ❤️</b> zeigt er es dir – noch ${t.need-P.hearts} Herzen. Tipp oben auf ❤️.`,4200); return; } return _do(a,ctx); }; }
-function trickSurprise(t){ if(P.tricks[t.id]) return; if(MIS.active||ADV.active||UI.sheetIsOpen()||pendingGive||cocoSaved||$('giftBox').classList.contains('open')){ setTimeout(()=>trickSurprise(t),4000); return; }
+function trickSurprise(t){ if(P.tricks[t.id]) return; if(run.review?.gram||run.hold||MIS.active||ADV.active||UI.sheetIsOpen()||pendingGive||cocoSaved||$('giftBox').classList.contains('open')){ setTimeout(()=>trickSurprise(t),4000); return; }
   P.tricks[t.id]=1; save(); const c=COMMANDS[t.id]; interruptCoco();
   UI.coco(`<span class="tutostep">❤️ ${t.need} Herzen!</span>${UI.frLine("{N} a une surprise pour toi !")}${UI.deLine('{N} hat dich so lieb, dass er dir ein Kunststück zeigt. Schau mal!')}`); A.say(N("{N} a une surprise pour toi !"));
   setTimeout(()=>dog.do({do:'trick',id:t.id}),1800);
@@ -448,7 +449,7 @@ function openDecks(){
 }
 function openMenu(){
   let h=testMode?`<p class="sub" style="background:#fff1c9;border-radius:10px;padding:6px 9px">🧪 <b>Testmodus aktiv</b> – alle Kapitel offen. Vor dem Zug ausschalten!</p>`:'';
-  h+=`<div class="menutiles"><button id="chapBtnM"><span>🗺️</span><b>Kapitel</b><small>Lernreise & Kapitel wählen</small></button><button id="deckBtnM"><span>📚</span><b>Vokabeln</b><small>mit {N} üben</small></button><button id="badgeBtnM"><span>🏆</span><b>Abzeichen</b><small>${BADGES.filter(b=>(P.badges||{})[b.id]).length}/${BADGES.length}</small></button></div><div class="menutiles two"><button id="carnetBtnM"><span>📖</span><b>Carnet</b><small>Mein Vokabelheft</small></button><button id="shopBtnM"><span>🦴</span><b>Schatzkiste</b><small>${P.treats} Knochen</small></button><button id="zoomBtnM"><span>Aa</span><b>Textgröße</b><small>größer / kleiner</small></button></div><div class="menutiles two"><button id="advBtnM"><span>🥩</span><b>Abenteuer</b><small>Prototyp: La boucherie</small></button></div>`;
+  h+=`<div class="menutiles two"><button id="gramBtnM" style="background:#e8f1ff"><span>📘</span><b>Grammatik-Trainer</b><small>Endungen, être, avoir … für die Schulaufgabe</small></button></div><div class="menutiles"><button id="chapBtnM"><span>🗺️</span><b>Kapitel</b><small>Lernreise & Kapitel wählen</small></button><button id="deckBtnM"><span>📚</span><b>Vokabeln</b><small>mit {N} üben</small></button><button id="badgeBtnM"><span>🏆</span><b>Abzeichen</b><small>${BADGES.filter(b=>(P.badges||{})[b.id]).length}/${BADGES.length}</small></button></div><div class="menutiles two"><button id="carnetBtnM"><span>📖</span><b>Carnet</b><small>Mein Vokabelheft</small></button><button id="shopBtnM"><span>🦴</span><b>Schatzkiste</b><small>${P.treats} Knochen</small></button><button id="zoomBtnM"><span>Aa</span><b>Textgröße</b><small>größer / kleiner</small></button></div><div class="menutiles two"><button id="advBtnM"><span>🥩</span><b>Abenteuer</b><small>Prototyp: La boucherie</small></button></div>`;
   h=N(h);
   h+=`<h3>Einstellungen</h3>
     <label class="set">🎵 Musik <input type="checkbox" id="setMusic" ${A.settings.music?'checked':''}></label>
@@ -478,7 +479,7 @@ function openMenu(){
     ${testMode?`<button class="row" id="tJump"><b>🧪 Zu Aufgabe springen</b><small>Aktuelles Kapitel</small></button><button class="row" id="tMis"><b>🧪 Quatsch auslösen</b><small>Hund macht sofort Unsinn</small></button><button class="row" id="tDefi"><b>🧪 Hundeshow starten</b><small>Mini-Test dieses Kapitels</small></button>`:''}
     <button class="row" id="resetBtn"><b>🗑️ Spielstand löschen</b><small>Neuer Hund, alles von vorn</small></button>`;
   UI.openSheet('☰ Menü', h, {onOpen:b=>{
-    b.querySelector('#chapBtnM').onclick=openChapters; b.querySelector('#deckBtnM').onclick=openDecks; b.querySelector('#badgeBtnM').onclick=()=>openBadges(); b.querySelector('#carnetBtnM').onclick=()=>{ openCarnet(); run.event('carnet'); }; b.querySelector('#shopBtnM').onclick=()=>openShop('coffre'); b.querySelector('#zoomBtnM').onclick=()=>$('zoomBtn').click(); b.querySelector('#advBtnM').onclick=()=>{ UI.closeSheet(); setTimeout(()=>ADV.start(),250); };
+    b.querySelector('#chapBtnM').onclick=openChapters; b.querySelector('#deckBtnM').onclick=openDecks; b.querySelector('#badgeBtnM').onclick=()=>openBadges(); b.querySelector('#carnetBtnM').onclick=()=>{ openCarnet(); run.event('carnet'); }; b.querySelector('#shopBtnM').onclick=()=>openShop('coffre'); b.querySelector('#zoomBtnM').onclick=()=>$('zoomBtn').click(); b.querySelector('#gramBtnM').onclick=()=>openGram(); b.querySelector('#advBtnM').onclick=()=>{ UI.closeSheet(); setTimeout(()=>ADV.start(),250); };
     b.querySelector('#setMusic').onchange=e=>{ A.audioCtx(); if(e.target.checked!==A.settings.music){ $('musicBtn').textContent=A.toggleMusic()?'🎵':'🔇'; } };
     b.querySelectorAll('[data-z]').forEach(x=>x.onclick=()=>{ uiz=ZOOMS[+x.dataset.z]; applyZoom(); openMenu(); });
     const fb=b.querySelector('#fsBtn'); if(fb) fb.onclick=()=>{ UI.closeSheet(); if(IOS) iosHint(true); else goFullscreen(); };
@@ -574,6 +575,16 @@ function askGender(after){
       b.querySelectorAll('[data-g]').forEach(x=>x.onclick=()=>{ P.gender=x.dataset.g; save(); UI.closeSheet(); A.sfx.success(); dog.happy(1500); fx.hearts(3);
         const t= P.gender==='f'? `C'est une chienne. Elle s'appelle ${P.name}.` : `C'est un chien. Il s'appelle ${P.name}.`; A.say(t);
         toast(`<b class="fr">${esc(t)}</b>`); run.refresh?.(); after&&after(); }); }});
+}
+function startExam(){ run.startGram('exam',examLesson()); }
+function openGram(){
+  const G=P.gram||{};
+  let h=`<p class="sub">Kurze Lektionen mit Coco: erst erklären, dann üben. Für die Schulaufgabe am besten <b>alle der Reihe nach</b>, danach den <b>Schulaufgaben-Mix</b> so oft wie möglich.</p>`;
+  const ex=(P.exams||[]).slice(-5); h+=`<button class="row" id="gexam" style="background:#ffe1e1"><b>📝 Probe-Schulaufgabe</b><small>26 Aufgaben, jedes Mal neu gemischt · mit Note${ex.length?` · zuletzt: ${ex.map(e=>e.n).join(', ')}`:''}</small></button>`;
+  h+=`<button class="row" id="gmix" style="background:#fff1c9"><b>💪 Schulaufgaben-Mix</b><small>14 gemischte Aufgaben ohne Erklärung – wie in der Prüfung</small></button>`;
+  for(const id in GRAM){ const l=GRAM[id]; h+=`<button class="row" data-g="${id}"><b>${l.icon} ${esc(l.titel)} ${G[id]?'✅'+(G[id]>1?' ×'+G[id]:''):''}</b><small>${esc(l.titre)} · ${l.steps.length} Schritte</small></button>`; }
+  UI.openSheet('📘 Grammatik-Trainer', h, {onOpen:b=>{ b.querySelector('#gexam').onclick=()=>{ UI.closeSheet(); startExam(); }; b.querySelector('#gmix').onclick=()=>{ UI.closeSheet(); run.startGram('mix',mixLesson(14)); };
+    b.querySelectorAll('[data-g]').forEach(x=>x.onclick=()=>{ UI.closeSheet(); run.startGram(x.dataset.g); }); }});
 }
 function openDogs(){
   UI.openSheet('🐶 Welcher Hund?', `<p class="sub">Such dir einen Hund aus! Name, Fortschritt, Herzen und Sachen bleiben gleich – nur das Aussehen ändert sich.</p>
@@ -678,7 +689,7 @@ dog.load(p=>{ $('loadBar').style.width=(p*100)+'%'; }).then(()=>{
   if(P.name){ st.textContent=N('Weiter mit {N} 🐾'); document.querySelector('#load .cocoSays').textContent=N('Coucou ! {N} t\'attend !'); }
   st.onclick=()=>{ guardHistory(); goFullscreen(); document.body.classList.remove('title'); titleCam=false; dog.setPose(0,0); dog.wagAmt=0.25; dog.wagSpeed=7; const s0=room.start; dog.root.position.set(s0.pos[0],0,s0.pos[1]); dog.yaw=s0.yaw; started=true; bump(); A.audioCtx(); A.startMusic(); A.sfx.pop(); $('load').style.opacity=0; setTimeout(()=>$('load').remove(),500); run.start(); if(P.name && !P.gender) setTimeout(()=>askGender(),1500);
     setTimeout(badgeCheck,15000);
-    setTimeout(function wishHint(){ if(!P.name) return; const w=todayWish(); if(w.told||w.done) return; if(UI.sheetIsOpen()||cocoSaved||ADV.active){ setTimeout(wishHint,5000); return; } w.told=1; save(); toast(`🌟 <b class="fr">Aujourd'hui, {N} adore ${LIKES[w.kind].fr} !</b><br>Heute wünscht sich {N}: ${LIKES[w.kind].de} → +5 ❤️ <small>(tippe oben auf ❤️)</small>`,6000); }, 9000);
+    setTimeout(function wishHint(){ if(!P.name) return; const w=todayWish(); if(w.told||w.done) return; if(UI.sheetIsOpen()||cocoSaved||ADV.active||run.review?.gram||run.hold){ setTimeout(wishHint,5000); return; } w.told=1; save(); toast(`🌟 <b class="fr">Aujourd'hui, {N} adore ${LIKES[w.kind].fr} !</b><br>Heute wünscht sich {N}: ${LIKES[w.kind].de} → +5 ❤️ <small>(tippe oben auf ❤️)</small>`,6000); }, 9000);
      };
   rewear();
   g.openMap=openMap;
