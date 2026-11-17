@@ -93,7 +93,7 @@ export class Runner {
       const acc= missingAccent(raw,f[1])? UI.tipLine(`Fast perfekt – mit Akzent: <b class="fr">${UI.esc(f[1])}</b>`):'';
       if(this.cDone.length>=st.forms.length){
         if(this.cPhase==='pick' && !st.pickOnly){ this.cPhase='type'; this.cDone=[]; this.cRows=shuffle(st.forms.map((_,i)=>i)); UI.setInputMode('text','Verbform …'); this.refresh(UI.tipLine('Super! Jetzt die Profi-Runde: gemischt und selbst schreiben ✍️')); return; }
-        this.solved=true; P.treats+=1; save(); this.g.dog.happy(1200); this.complete(st,{extra:acc}); return; }
+        P.treats+=1; save(); this.g.dog.happy(1200); this.complete(st,{extra:acc}); return; }
       this.refresh(acc); return; }
     this.cTry++; sfx.soft_no(); this.g.dog.tilt(); learn('g:'+st.verb+':'+f[0],{kind:'word',fr:`${f[0]}${f[0].endsWith("'")?'':' '}${f[1]}`,de:f[2]||st.verb,gram:st.verb},0);
     this.refresh(UI.tipLine(this.cTry>=2? `Richtig ist: <b class="fr">${UI.esc(f[0])} ${UI.esc(f[1])}</b> – tipp/schreib es ab!` : `Nicht ganz – schau noch mal genau hin!`)); }
@@ -101,8 +101,7 @@ export class Runner {
     UI.coco(`<span class="who">🎵 ${UI.esc(SONG.title)}</span><div class="songbox">${html}</div>`,{chirp:false});
     const fin=()=>{ UI.chips([{cls:'sol',html:'🔁 Nochmal',onClick:()=>this.songCard(back)}, back?{html:'Weiter ➜',onClick:()=>{ stopSong(); this.next(); }}:{html:'📘 Grammatik',onClick:()=>this.g.openGram?.()}]); };
     UI.chips([{cls:'sol',html:'⏹ Stopp',onClick:()=>{ stopSong(); fin(); }}, ...(back?[{html:'Weiter ➜',onClick:()=>{ stopSong(); this.next(); }}]:[])]);
-    let userScroll=0; setTimeout(()=>{ const b=document.querySelector('#bubble .songbox'); if(b){ b.addEventListener('touchstart',()=>userScroll=Date.now(),{passive:true}); b.addEventListener('wheel',()=>userScroll=Date.now(),{passive:true}); } },50);
-    playSong({onTime:(t,d)=>{ const b=document.querySelector('#bubble .songbox'); if(!b||Date.now()-userScroll<4000) return; const f=Math.max(0,Math.min(1,(t-6)/(d-14))); b.scrollTop=f*(b.scrollHeight-b.clientHeight); }, onEnd:fin}); }
+    playSong({onEnd:fin}); }
   rapCard(id,back){ this.hold=true; const R=RAPS[id]; const draw=cur=>UI.coco(`<span class="who">🎤 ${UI.esc(R.title)}</span>${R.lines.map((l,i)=>`<span class="rapl${i===cur?' on':''}">${l.map(([lg,t,sh])=>lg==='fr'?`<b class="fr">${UI.esc(t)}</b>`:sh?`<b style="color:#e07b39">${UI.esc(sh)}</b>`:UI.esc(t)).join(' ')}</span>`).join('')}`,{chirp:false});
     const done=()=>{ if(back&&this.step===back){ this.refresh(); } };
     draw(-1); UI.chips([{cls:'sol',html:'⏹ Stopp',onClick:()=>{ stopRap(); }},{html:'🔁 Nochmal',onClick:()=>{ stopRap(); this.rapCard(id,back); }}]);
@@ -144,7 +143,7 @@ export class Runner {
       if(this.review.i>=this.review.steps.length && this.review.gram){ const id=this.review.gram; this.review=null; this.hold=true; P.gram=P.gram||{}; const first=!P.gram[id]; P.gram[id]=(P.gram[id]||0)+1; if(first) P.treats+=3; save(); sfx.chapter(); this.g.fx.hearts(5); this.g.celebrate?.(); this.renderTop();
         UI.coco(`<span class="mission fr">Bravo !</span><span class="erz">Lektion geschafft!${first?' +3 🦴':''} Was noch wackelt, kommt in der Wiederholung wieder.</span>`); say('Bravo !');
         const ids=Object.keys(GRAM), nx=id==='mix'?null:ids[ids.indexOf(id)+1];
-        UI.chips([ nx&&GRAM[nx]?{cls:'sol',html:`Weiter: ${GRAM[nx].icon} ${GRAM[nx].titel} ➜`,onClick:()=>this.startGram(nx)}:{cls:'sol',html:'📘 Grammatik-Übersicht',onClick:()=>this.g.openGram?.()}, {html:'🔁 Nochmal',onClick:()=>id==='mix'?this.g.openGram?.():this.startGram(id)}, {html:'🐶 Zurück zum Spiel',onClick:()=>{ this.hold=false; this.start(); }} ]); return; }
+        UI.chips([ nx&&GRAM[nx]?{cls:'sol',html:`Weiter: ${GRAM[nx].icon} ${GRAM[nx].titel} ➜`,onClick:()=>this.startGram(nx)}:{cls:'sol',html:'📝 Weiter: Probe-Schulaufgabe ➜',onClick:()=>this.g.startExam?.()}, {html:'🔁 Nochmal',onClick:()=>id==='mix'?this.g.openGram?.():this.startGram(id)}, {html:'🐶 Zurück zum Spiel',onClick:()=>{ this.hold=false; this.start(); }} ]); return; }
       if(this.review.i>=this.review.steps.length){ this.review=null; UI.coco(`<span class="mission fr">Révision terminée !</span>${UI.deLine('Wiederholung geschafft! Weiter geht’s.')}`); sfx.chapter(); UI.chips([{cls:'sol',html:'Weiter ➜',onClick:()=>this.start()}]); return; } return this.begin(); }
     P.step++; markFurthest(); save(); if(P.step>=this.chapter.steps.length) return this.chapterDone(); this.begin();
   }
@@ -189,6 +188,8 @@ export class Runner {
 
   // ---- Eingaben ----
   input(raw){ const st=this.step; if(st && !this.solved){ const h=H[st.type]; if(h?.input && h.input.call(this,st,raw)) return; }
+    if(this.review?.gram && st){ if(this.solved||st.type==='dialogue'||st.type==='rapstep'){ this.g.toast?.('👉 Tippe unten auf <b>Weiter ➜</b>'); return; }
+      if(st.type==='choice'||st.type==='build'||st.type==='listen'){ this.miss(UI.tipLine(`<b class="fr">« ${UI.esc(raw)} »</b> passt nicht – tippe eine der Antworten unten an.`)); return; } }
     this.g.freeCommand(raw); }
   prop(p){ const st=this.step; if(st && !this.solved && H[st.type]?.prop){ return H[st.type].prop.call(this,st,p); } return false; }
 }
@@ -286,7 +287,7 @@ const H = {
       UI.chips(this.rTip? [{cls:'sol fr',html:UI.esc(N(it.fr)),onClick:()=>{ UI.$('inp').value=N(it.fr); }}] : [{cls:'help',html:'💡 Lösung zeigen',onClick:()=>{ this.rTip=1; this.refresh(); }}]); },
     input(st,raw){ const it=this.rq[this.ri]; if(!it) return false;
       if(it.kind==='cmd'){ const r=parseCommand(raw,P.name); if((r.type==='ok'||r.type==='close')&&r.id===it.cmd){ this.g.dog.do(COMMANDS[it.cmd].action); this.rAnswer(st,true); } else { this.g.dog.tilt(); this.rAnswer(st,false); } return true; }
-      if(this.rDir==='rec') return false;
+      if(this.rDir==='rec'){ const r=checkAnswer(raw,[N(it.de)]); this.rAnswer(st,r.ok); return true; }
       const r=checkAnswer(raw,[N(it.fr)]); this.rAnswer(st,r.ok); return true; },
   },
 
@@ -312,8 +313,8 @@ const H = {
       UI.coco(`<span class="erz">${this.cPhase==='pick'?'Tippe die richtige Form an:':'Jetzt ohne Hilfe – schreib die Form:'} <b>${UI.esc(f[0])} ___</b>${f[2]?` <i>(${UI.esc(f[2])})</i>`:''}</span>${H.conj.table.call(this,st,cur)}${extra}`,{chirp:false});
       setTimeout(()=>document.querySelector('#bubble table.conj tr.cur')?.scrollIntoView({block:'nearest'}),30);
       if(this.cPhase==='pick'){ const opts=shuffle([...new Set(st.forms.map(x=>x[1]))]); UI.chips(opts.map(o=>({cls:'ans fr',html:UI.esc(o),onClick:()=>this.cAnswer(st,o)}))); }
-      else UI.chips(this.cTry>=1?[{cls:'help',html:`💡 ${UI.esc(f[1].slice(0,Math.max(1,f[1].length-2)))}…`,onClick:()=>{}}]:[]); },
-    input(st,raw){ if(this.cPhase!=='type') return false; this.cAnswer(st,raw.trim().replace(/^(je|j'|tu|il|elle|on|nous|vous|ils|elles)\s*/i,'').replace(/[.!?]+$/,'')); return true; },
+      else UI.chips(this.cTry>=2?[{cls:'sol fr',html:UI.esc(f[1]),onClick:()=>this.cAnswer(st,f[1])}] : this.cTry>=1?[{cls:'help',html:`💡 Fängt an mit: ${UI.esc(f[1].slice(0,Math.max(1,f[1].length-2)))}…`,onClick:()=>{}}]:[]); },
+    input(st,raw){ if(this.cPhase==='look') return false; this.cAnswer(st,raw.trim().replace(/[.!?]+$/,'').replace(/^(ils\/elles|il\/elle\/on|elles|ils|elle|il|on|nous|vous|tu|je|j['’])\s*/i,'').trim()); return true; },
   },
 
   choice:{
@@ -341,7 +342,7 @@ const H = {
           if(this.usedIdx?.has(i)) return; (this.usedIdx??=new Set()).add(i); this.built.push(t); sfx.pop();
           const want=norm(N(st.answer)), got=norm(this.built.join(' '));
           if(got===want){ this.complete(st,{sayText:N(st.answer)}); return; }
-          if(!want.startsWith(got)){ this.built=[]; this.usedIdx=new Set(); this.miss(UI.tipLine('Fast – die Reihenfolge stimmt noch nicht. Nochmal!')); return; }
+          if(!want.startsWith(got)){ this.built.pop(); this.usedIdx.delete(i); this.miss(UI.tipLine(`<b class="fr">${UI.esc(t)}</b> passt hier noch nicht – welches Wort kommt als Nächstes?`)); return; }
           this.refresh(); }})),
         {html:'↺',onClick:()=>{ this.built=[]; this.usedIdx=new Set(); this.refresh(); }}, ...this.helpChip(st)]); },
   },

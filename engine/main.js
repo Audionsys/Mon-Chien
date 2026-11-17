@@ -38,7 +38,7 @@ A.preloadMusic('music.mp3');
 function headScreen(){ const p=dog.headWorld(); p.y+=0.22; p.project(world.camera); return {x:(p.x*0.5+0.5)*innerWidth, y:(-p.y*0.5+0.5)*innerHeight}; }
 const fx={ hearts(n=3){ const s=headScreen(); UI.floatFx(s.x,s.y,['❤️','💛','✨','🧡'],n); } };
 dog.on('say',(t,ms)=>UI.dogSay(t,ms)); dog.on('hearts',n=>fx.hearts(n));
-export const VERSION='64';
+export const VERSION='65';
 try{ document.getElementById('ver').textContent='v'+VERSION; }catch(e){}
 function toast(html,ms=2600){ const t=$('toast'); t.innerHTML=N(html); t.classList.add('on'); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('on'),ms); }
 
@@ -82,7 +82,7 @@ function love(kind){ const L=LIKES[kind]; if(!L||!P.name) return; const now=Date
   P.hearts+=n; save(); renderHearts(true);
   if(bonus){ A.sfx.success(); fx.hearts(8); setTimeout(()=>toast(`💖 <b class="fr">{N} adore ${LIKES[kind].fr} !</b><br>Herzenswunsch erfüllt: <b>+5 ❤️</b>`,4200),500); }
   const t=TRICKS.find(t=>!P.tricks[t.id]&&P.hearts>=t.need); if(t) setTimeout(()=>trickSurprise(t),bonus?4200:1800); }
-g.love=love;
+g.love=love; g.toast=toast;
 dog.on('liked',love);
 dog.on('liked',k=>{ if(k==='caresse') track('pet'); if(k==='jeu') track('fetch'); badgeCheck(); });
 dog.on('trickDone',()=>{ track('shown'); badgeCheck(); });
@@ -437,8 +437,9 @@ function openCarnet(){
 let testMode=(()=>{ try{ return localStorage.getItem('chien_test')==='1'; }catch(e){ return false; } })();
 function openChapters(){
   let h=`<button class="row" id="mapBtn2"><b>🗺️ Die Lernreise (Karte)</b><small>Alle Stationen auf einen Blick</small></button>`;
+  h+=`<button class="row" id="gramBtn2" style="background:#e8f1ff"><b>📘 Grammatik-Trainer</b><small>Endungen, être, avoir … + Probe-Schulaufgabe</small></button>`;
   COURSE.chapters.forEach((ch,i)=>{ const open=testMode||i<=P.unlocked; const done=P.results?.[ch.id]; h+=`<button class="row" data-ch="${i}" ${open?'':'disabled'}><b>${i+1}. ${esc(N(ch.titre))} ${i===P.chapter?'📍':done?'✅':''}</b><small>${esc(N(ch.titel))}${ch.unite?` · 📘 ${/\d/.test(ch.unite)?'Unité '+ch.unite:ch.unite}`:''}${open?'':' · 🔒'}</small></button>`; });
-  UI.openSheet('🗺️ Kapitel', h, {onOpen:b=>{ b.querySelector('#mapBtn2').onclick=()=>openMap();
+  UI.openSheet('🗺️ Kapitel', h, {onOpen:b=>{ b.querySelector('#mapBtn2').onclick=()=>openMap(); b.querySelector('#gramBtn2').onclick=()=>openGram();
     b.querySelectorAll('[data-ch]').forEach(x=>x.onclick=()=>{ if(x.disabled) return; P.chapter=+x.dataset.ch; P.step=0; save(); run.review=null; run.freeplay=false; UI.closeSheet(); if(!P.name){P.chapter=0;} run.begin(); }); }});
 }
 function openDecks(){
@@ -579,13 +580,16 @@ function askGender(after){
 function startExam(){ run.startGram('exam',examLesson()); }
 function openGram(){
   const G=P.gram||{};
-  let h=`<p class="sub">Kurze Lektionen mit Coco: erst erklären, dann üben. Für die Schulaufgabe am besten <b>alle der Reihe nach</b>, danach den <b>Schulaufgaben-Mix</b> so oft wie möglich.</p>`;
+  const ids=Object.keys(GRAM), nxt=ids.find(id=>!G[id]);
+  let h=`<p class="sub">Einfach immer auf den grünen Knopf tippen – dann kommst du Schritt für Schritt durch alles. Am Ende wartet die Probe-Schulaufgabe!</p>`;
+  h+=`<button class="row" id="gnext" style="background:#2fb36b;color:#fff"><b style="color:#fff">▶ ${nxt?`Weiter lernen: ${GRAM[nxt].icon} ${esc(GRAM[nxt].titel)}`:'📝 Probe-Schulaufgabe schreiben'}</b><small style="color:#eafff1">${nxt?`Schritt ${ids.indexOf(nxt)+1} von ${ids.length+1}`:'Alle Lektionen geschafft! Jetzt testen – so oft du willst.'}</small></button>`;
   const ex=(P.exams||[]).slice(-5); h+=`<button class="row" id="gexam" style="background:#ffe1e1"><b>📝 Probe-Schulaufgabe</b><small>29 Aufgaben, jedes Mal neu gemischt · mit Note${ex.length?` · zuletzt: ${ex.map(e=>e.n).join(', ')}`:''}</small></button>`;
   h+=`<button class="row" id="gsong" style="background:#e9ffe4"><b>🎵 Der Song: „Mein Hund versteht Französisch“</b><small>-er-Endungen, être und avoir zum Mitrappen – mit Text</small></button>`;
   h+=`<div class="menutiles"><button data-rap="er"><span>🎤</span><b>-er-Rap</b><small>E – ES – E …</small></button><button data-rap="etre"><span>🎤</span><b>être-Rap</b><small>suis, es, est …</small></button><button data-rap="avoir"><span>🎤</span><b>avoir-Rap</b><small>ai, as, a …</small></button></div>`;
   h+=`<button class="row" id="gmix" style="background:#fff1c9"><b>💪 Schulaufgaben-Mix</b><small>14 gemischte Aufgaben ohne Erklärung – wie in der Prüfung</small></button>`;
-  for(const id in GRAM){ const l=GRAM[id]; h+=`<button class="row" data-g="${id}"><b>${l.icon} ${esc(l.titel)} ${G[id]?'✅'+(G[id]>1?' ×'+G[id]:''):''}</b><small>${esc(l.titre)} · ${l.steps.length} Schritte</small></button>`; }
-  UI.openSheet('📘 Grammatik-Trainer', h, {onOpen:b=>{ b.querySelector('#gexam').onclick=()=>{ UI.closeSheet(); startExam(); }; b.querySelector('#gmix').onclick=()=>{ UI.closeSheet(); run.startGram('mix',mixLesson(14)); };
+  h+=`<h3>Alle Lektionen</h3>`;
+  for(const id in GRAM){ const l=GRAM[id]; h+=`<button class="row" data-g="${id}"><b>${ids.indexOf(id)+1}. ${l.icon} ${esc(l.titel)} ${G[id]?'✅'+(G[id]>1?' ×'+G[id]:''):id===nxt?'👈':''}</b><small>${esc(l.titre)} · ${l.steps.length} Schritte</small></button>`; }
+  UI.openSheet('📘 Grammatik-Trainer', h, {onOpen:b=>{ b.querySelector('#gnext').onclick=()=>{ UI.closeSheet(); nxt?run.startGram(nxt):startExam(); }; b.querySelector('#gexam').onclick=()=>{ UI.closeSheet(); startExam(); }; b.querySelector('#gmix').onclick=()=>{ UI.closeSheet(); run.startGram('mix',mixLesson(14)); };
     b.querySelectorAll('[data-g]').forEach(x=>x.onclick=()=>{ UI.closeSheet(); run.startGram(x.dataset.g); }); b.querySelector('#gsong').onclick=()=>{ UI.closeSheet(); run.songCard(); }; b.querySelectorAll('[data-rap]').forEach(x=>x.onclick=()=>{ UI.closeSheet(); run.rapCard(x.dataset.rap); }); }});
 }
 function openDogs(){
