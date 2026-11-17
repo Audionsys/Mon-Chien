@@ -7,7 +7,7 @@ import { parseCommand, checkAnswer, missingAccent, norm } from './lang.js';
 import { P, save, learn, dueItems, snapshot } from './progress.js';
 import { say, sfx } from './audio.js';
 import * as UI from './ui.js';
-import { RAPS, playRap, stopRap, isRapping } from './rap.js';
+import { RAPS, playRap, stopRap, isRapping, SONG, playSong, stopSong } from './rap.js';
 const { N } = UI;
 const shuffle=a=>a.map(x=>[Math.random(),x]).sort((p,q)=>p[0]-q[0]).map(x=>x[1]);
 const cmdKey=id=>'cmd:'+id;
@@ -97,7 +97,13 @@ export class Runner {
       this.refresh(acc); return; }
     this.cTry++; sfx.soft_no(); this.g.dog.tilt(); learn('g:'+st.verb+':'+f[0],{kind:'word',fr:`${f[0]}${f[0].endsWith("'")?'':' '}${f[1]}`,de:f[2]||st.verb,gram:st.verb},0);
     this.refresh(UI.tipLine(this.cTry>=2? `Richtig ist: <b class="fr">${UI.esc(f[0])} ${UI.esc(f[1])}</b> – tipp/schreib es ab!` : `Nicht ganz – schau noch mal genau hin!`)); }
-  rapCard(id,back){ const R=RAPS[id]; const draw=cur=>UI.coco(`<span class="who">🎤 ${UI.esc(R.title)}</span>${R.lines.map((l,i)=>`<span class="rapl${i===cur?' on':''}">${l.map(([lg,t,sh])=>lg==='fr'?`<b class="fr">${UI.esc(t)}</b>`:sh?`<b style="color:#e07b39">${UI.esc(sh)}</b>`:UI.esc(t)).join(' ')}</span>`).join('')}`,{chirp:false});
+  songCard(back){ this.hold=true; const html=SONG.lyrics.split('\n').map(l=>l.startsWith('[')?`<span class="songh">${UI.esc(l.replace(/[\[\]]/g,''))}</span>`:l.trim()?`<span class="songl">${/[àâçéèêîôûœ]|\b(je|tu|il|elle|nous|vous|ils|elles|j'ai|mon|on y)\b/i.test(l)&&!/heißt|hör|Achtung|Mein Hund|Endung|doch|Falle/.test(l)?`<b class="fr">${UI.esc(l)}</b>`:UI.esc(l)}</span>`:'').join('');
+    UI.coco(`<span class="who">🎵 ${UI.esc(SONG.title)}</span><div class="songbox">${html}</div>`,{chirp:false});
+    const fin=()=>{ UI.chips([{cls:'sol',html:'🔁 Nochmal',onClick:()=>this.songCard(back)}, back?{html:'Weiter ➜',onClick:()=>{ stopSong(); this.next(); }}:{html:'📘 Grammatik',onClick:()=>this.g.openGram?.()}]); };
+    UI.chips([{cls:'sol',html:'⏹ Stopp',onClick:()=>{ stopSong(); fin(); }}, ...(back?[{html:'Weiter ➜',onClick:()=>{ stopSong(); this.next(); }}]:[])]);
+    let userScroll=0; setTimeout(()=>{ const b=document.querySelector('#bubble .songbox'); if(b){ b.addEventListener('touchstart',()=>userScroll=Date.now(),{passive:true}); b.addEventListener('wheel',()=>userScroll=Date.now(),{passive:true}); } },50);
+    playSong({onTime:(t,d)=>{ const b=document.querySelector('#bubble .songbox'); if(!b||Date.now()-userScroll<4000) return; const f=Math.max(0,Math.min(1,(t-6)/(d-14))); b.scrollTop=f*(b.scrollHeight-b.clientHeight); }, onEnd:fin}); }
+  rapCard(id,back){ this.hold=true; const R=RAPS[id]; const draw=cur=>UI.coco(`<span class="who">🎤 ${UI.esc(R.title)}</span>${R.lines.map((l,i)=>`<span class="rapl${i===cur?' on':''}">${l.map(([lg,t,sh])=>lg==='fr'?`<b class="fr">${UI.esc(t)}</b>`:sh?`<b style="color:#e07b39">${UI.esc(sh)}</b>`:UI.esc(t)).join(' ')}</span>`).join('')}`,{chirp:false});
     const done=()=>{ if(back&&this.step===back){ this.refresh(); } };
     draw(-1); UI.chips([{cls:'sol',html:'⏹ Stopp',onClick:()=>{ stopRap(); }},{html:'🔁 Nochmal',onClick:()=>{ stopRap(); this.rapCard(id,back); }}]);
     playRap(id,{rounds:2,onLine:i=>{ draw(i); setTimeout(()=>document.querySelector('#bubble .rapl.on')?.scrollIntoView({block:'nearest'}),30); this.g.dog?.happy?.(500); },onEnd:()=>{ if(back) setTimeout(done,50); else { UI.chips([{cls:'sol',html:'🔁 Nochmal',onClick:()=>this.rapCard(id)},{html:'📘 Grammatik',onClick:()=>this.g.openGram?.()}]); } }}); }
@@ -287,7 +293,7 @@ const H = {
   rapstep:{
     start(st){ UI.setInputMode('none'); this.solved=true; this.refresh(); },
     render(st,extra=''){ UI.coco(`<span class="erz">${weave(st.erz||'Hör dir den Rap an – und rap mit! 🎤')}</span>${extra}`,{chirp:false});
-      UI.chips([{cls:'sol',html:'🎤 Rap abspielen',onClick:()=>this.rapCard(st.rap,st)},{html:'Weiter ➜',onClick:()=>{ stopRap(); this.next(); }}]); },
+      UI.chips([{cls:'sol',html:'🎵 Song',onClick:()=>this.songCard(st)},{html:'🎤 Sprech-Rap',onClick:()=>this.rapCard(st.rap,st)},{html:'Weiter ➜',onClick:()=>{ stopRap(); this.next(); }}]); },
   },
   // Konjugation auswendig lernen: Tabelle ansehen → per Antippen → selbst schreiben
   conj:{

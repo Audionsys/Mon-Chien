@@ -66,3 +66,52 @@ export function playRap(id,{onLine,onEnd,rounds=1}={}){
     setTimeout(()=>{ if(!playing) return; onLine?.(i); try{ speechSynthesis.cancel(); }catch(e){}
       for(const [lang,txt] of R.lines[i]){ const u=new SpeechSynthesisUtterance(txt); u.lang=lang==='fr'?'fr-FR':'de-DE'; const v=lang==='fr'?frVoice:deVoice; if(v) u.voice=v; u.rate=lang==='fr'?1.0:1.05; u.pitch=1.0; u.volume=1; speechSynthesis.speak(u); } }, Math.max(0,at)); }
 }
+
+// ---------------- Echter Song (Suno) mit mitlaufendem Text ----------------
+export const SONG = { title:'Mein Hund versteht Französisch', src:'music/rap-chien.mp3', lyrics:`[Intro]
+Yo! Mein Hund ist am Start – und er versteht nur Französisch!
+Also hör gut zu… on y va!
+
+[Strophe 1]
+Je parle, tu parles, il parle,
+nous parlons, vous parlez, ils parlent!
+Je joue, tu joues, elle joue,
+nous jouons, vous jouez, elles jouent!
+
+[Refrain]
+E! E-S! E!
+O-N-S! E-Z! E-N-T!
+Die Endung hörst du nicht –
+doch schreiben musst du sie!
+
+[Strophe 2 – être]
+Être heißt sein – das prägst du dir ein:
+Je suis, tu es, il est,
+nous sommes, vous êtes, ils sont!
+Suis, es, est – das ist der Test!
+Sommes, êtes, sont – und weiter geht's!
+
+[Refrain]
+E! E-S! E!
+O-N-S! E-Z! E-N-T!
+
+[Strophe 3 – avoir]
+Avoir heißt haben – jetzt kannst du's sagen:
+J'ai, tu as, il a,
+nous avons, vous avez, ils ont!
+Ai, as, a – mein Hund ist da!
+
+[Bridge]
+Achtung, Falle! Hör genau:
+Ils ont – sie haben!
+Ils sont – sie sind!
+J'ai onze ans – ich bin elf!
+
+[Outro]
+Wuff! Wuff! Mon chien dit: Bravo!
+C'est parti – on y va!` };
+let songEl=null, songMusicWas=false;
+export function playSong({onTime,onEnd}={}){ stopRap(); stopSong(); songMusicWas=settings.music; if(songMusicWas) stopMusic();
+  songEl=new Audio(SONG.src); songEl.ontimeupdate=()=>onTime?.(songEl.currentTime,songEl.duration||105); songEl.onended=()=>{ stopSong(); onEnd?.(); }; songEl.play().catch(()=>{}); }
+export function stopSong(){ if(!songEl) return; try{ songEl.pause(); }catch(e){} songEl=null; if(songMusicWas){ songMusicWas=false; startMusic(); } }
+export function songPlaying(){ return !!songEl; }
