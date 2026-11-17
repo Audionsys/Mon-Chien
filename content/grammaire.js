@@ -17,6 +17,33 @@ const F=(erz,fr,answer,o={})=>({type:'fill',strict:true,erz,fr,answer:[].concat(
 const C=(erz,fr,options,answer,o={})=>({type:'choice',erz,fr,options,answer,...o});
 const D=(...l)=>({type:'dialogue',lines:l.map(x=>({who:'Coco',erz:x}))});
 
+
+// ---------- Lesetexte (im Stil der Lehrbuch-Aufgaben, eigene Inhalte) ----------
+export const LIRE=[
+  { title:'Perdu !', erz:'Am Baum im Park hängt ein Zettel …', text:`<b style="font-size:20px">🐶 PERDU !</b><br>Chien noir, 3 ans.<br>Il s'appelle <b>Rex</b>. Il est très gentil.<br>Il aime les balles et les enfants.<br>Vu mardi dans le parc Monceau.<br>📞 Téléphone : 06 12 15 18 20<br><b>Récompense : 50 €</b><br>Merci !`,
+    qs:[ {q:'Was ist passiert?',options:['Ein Hund ist verschwunden.','Ein Hund wurde gefunden.','Ein Hund wird verkauft.'],answer:'Ein Hund ist verschwunden.',why:'«Perdu» = verloren'},
+         {q:'Wie alt ist Rex?',options:['3 Jahre','13 Jahre','2 Jahre'],answer:'3 Jahre'},
+         {q:'Wann hat man ihn zuletzt gesehen?',options:['am Dienstag','am Donnerstag','am Samstag'],answer:'am Dienstag',why:'«mardi» = Dienstag'},
+         {q:'Was bedeutet «Récompense»?',options:['Belohnung','Telefon','Park'],answer:'Belohnung'},
+         {q:'Was mag Rex?',options:['Bälle und Kinder','Katzen und Vögel','Wurst und Brot'],answer:'Bälle und Kinder'} ]},
+  { title:'École des chiens', erz:'Coco hat einen Flyer gefunden. Was kann {N} hier lernen?', text:`<b style="font-size:18px">🎓 École des chiens « Toutou »</b><br>• <b>Lundi</b>, 17 h : cours pour les chiots (petits chiens)<br>• <b>Mercredi</b>, 15 h : tours et jeux 🎪<br>• <b>Samedi</b>, 10 h : agility – sauter et courir !<br>Prix : 12 € le cours<br>Infos : www.toutou-ecole.fr`,
+    qs:[ {q:'Dein Hund soll Kunststücke lernen. Wann gehst du hin?',options:['Mittwoch, 15 Uhr','Montag, 17 Uhr','Samstag, 10 Uhr'],answer:'Mittwoch, 15 Uhr',why:'«tours» = Kunststücke'},
+         {q:'Was kostet ein Kurs?',options:['12 €','17 €','10 €'],answer:'12 €'},
+         {q:'Was sind «les chiots»?',options:['junge Hunde','alte Hunde','Katzen'],answer:'junge Hunde',why:'«petits chiens» steht in Klammern'},
+         {q:'Was macht man am Samstag?',options:['springen und rennen','schlafen','Kunststücke'],answer:'springen und rennen'} ]},
+  { title:'En ville', erz:'{N} und du seid in der Stadt. Diese Schilder seht ihr:', text:`🥖 <b>BOULANGERIE</b> &nbsp; 💊 <b>PHARMACIE</b><br>📚 <b>LIBRAIRIE – PAPETERIE</b><br>🚉 <b>GARE</b> &nbsp; 🏦 <b>BANQUE</b><br>🐾 <b>ANIMALERIE</b> &nbsp; 🎬 <b>CINÉMA</b>`,
+    qs:[ {q:'Du brauchst Brot. Wohin gehst du?',options:['BOULANGERIE','PHARMACIE','BANQUE'],answer:'BOULANGERIE'},
+         {q:'Du brauchst ein Heft und Stifte.',options:['LIBRAIRIE – PAPETERIE','GARE','ANIMALERIE'],answer:'LIBRAIRIE – PAPETERIE'},
+         {q:'{N} braucht neues Hundefutter.',options:['ANIMALERIE','CINÉMA','BOULANGERIE'],answer:'ANIMALERIE',why:'«animal» steckt drin'},
+         {q:'Ihr wollt mit dem Zug nach Paris.',options:['GARE','BANQUE','PHARMACIE'],answer:'GARE'} ]},
+  { title:'Un message', erz:'Eine Nachricht von Léa an ihre neue Brieffreundin:', text:`Salut !<br>Je m'appelle Léa. J'ai onze ans et j'habite à Lyon. J'ai un frère, il s'appelle Hugo. Il a quatorze ans.<br>Nous avons un chien, Malo. Il est petit et très drôle.<br>J'aime la musique et le tennis, mais je préfère la danse. Je déteste le foot !<br>Le mercredi, je joue avec Malo dans le parc.<br>Et toi ? Tu as un animal ?<br>Bisous, Léa`,
+    qs:[ {q:'Wie alt ist Léa?',options:['11','14','12'],answer:'11'},
+         {q:'Wer ist Hugo?',options:['ihr Bruder','ihr Hund','ihr Vater'],answer:'ihr Bruder',why:'«frère» = Bruder'},
+         {q:'Was macht Léa am liebsten?',options:['Tanzen','Tennis','Fußball'],answer:'Tanzen',why:'«je préfère la danse»'},
+         {q:'Richtig oder falsch: Léa mag Fußball.',options:['falsch','richtig'],answer:'falsch',why:'«je déteste le foot»'},
+         {q:'Wann spielt sie mit Malo im Park?',options:['mittwochs','montags','sonntags'],answer:'mittwochs'} ]},
+];
+
 export const GRAM = {
 
   er: { icon:'🔤', titre:'Les verbes en -er', titel:'Verben auf -er (Endungen)', steps:[
@@ -151,6 +178,70 @@ export const GRAM = {
     C('meine Freundin: ___ amie (Vokal!)','___ amie',['mon','ma'],'mon',{full:'mon amie',note:'Vor Vokal: <b>mon</b> amie, auch wenn weiblich'}),
     C('ihre Hunde: ___ chiens','___ chiens',['ses','son','sa'],'ses',{full:'ses chiens'}),
   ]},
+
+  u3: { icon:'🛒', titre:'préférer, acheter, il y a', titel:'préférer, acheter, il y a, Fragen', steps:[
+    D('Zwei besondere -er-Verben aus Unité 3: «préférer» (lieber mögen) und «acheter» (kaufen). Die Endungen kennst du schon – E, ES, E, ONS, EZ, ENT!',
+      'Der Trick: Bei <b>je, tu, il/elle, ils/elles</b> ändert sich der Akzent im Stamm: «je préf<b>è</b>re», «j\'ach<b>è</b>te». Bei <b>nous</b> und <b>vous</b> bleibt er wie im Infinitiv: «nous préf<b>é</b>rons», «nous achetons».',
+      'Merkhilfe: Die vier Formen, bei denen man die Endung NICHT hört, bekommen den „Dach-Akzent“ <b>è</b>. Die zwei mit hörbarer Endung (-ons, -ez) nicht.'),
+    { type:'conj', verb:'préférer', erz:'So sieht «préférer» aus – achte auf <b>è</b> und <b>é</b>:', forms:[['je','préfère','ich mag lieber'],['tu','préfères','du magst lieber'],['il/elle/on','préfère','er/sie mag lieber'],['nous','préférons','wir mögen lieber'],['vous','préférez','ihr mögt lieber'],['ils/elles','préfèrent','sie mögen lieber']], tip:'è bei je · tu · il · ils — é bei nous · vous' },
+    { type:'conj', verb:'préférer', phase:'pick', erz:'Tippe die richtigen Formen an!', forms:[['je','préfère'],['tu','préfères'],['il/elle/on','préfère'],['nous','préférons'],['vous','préférez'],['ils/elles','préfèrent']] },
+    { type:'apporte', set:'pref', n:8, erz:'Apportieren mit préférer! 🦴 Achte auf die Endung UND den Akzent.' },
+    { type:'conj', verb:'acheter', erz:'Und «acheter» (kaufen). Achtung: «j\'achète» – mit Apostroph!', forms:[["j'",'achète','ich kaufe'],['tu','achètes','du kaufst'],['il/elle/on','achète','er/sie kauft'],['nous','achetons','wir kaufen'],['vous','achetez','ihr kauft'],['ils/elles','achètent','sie kaufen']], tip:'è bei je · tu · il · ils — kein Akzent bei nous · vous' },
+    { type:'conj', verb:'acheter', phase:'pick', erz:'Tippe die richtigen Formen von acheter an!', forms:[["j'",'achète'],['tu','achètes'],['il/elle/on','achète'],['nous','achetons'],['vous','achetez'],['ils/elles','achètent']] },
+    F('Papa ___ un cadeau. (acheter)','Papa ___ un cadeau.','achète',{de:'Papa kauft ein Geschenk.'}),
+    F('Nous ___ une BD. (acheter)','Nous ___ une BD.','achetons',{de:'Wir kaufen einen Comic.'}),
+    F('Tu ___ le foot ou le tennis ? (préférer)','Tu ___ le foot ou le tennis ?','préfères',{de:'Magst du lieber Fußball oder Tennis?'}),
+    F('Vous ___ la musique ? (préférer)','Vous ___ la musique ?','préférez',{de:'Mögt ihr lieber Musik?'}),
+    D('«il y a» heißt <i>es gibt</i> oder <i>da ist / da sind</i>. Es ändert sich nie: «Il y a un chien.» – «Il y a trois chats.»',
+      'Fragen: «Qu\'est-ce que c\'est ?» = <i>Was ist das?</i> (für Sachen). «Qui est-ce ?» = <i>Wer ist das?</i> (für Personen – und Tiere mit Namen).'),
+    C('Was fragst du? 📚 (ein Buch)','___',["Qu'est-ce que c'est ?",'Qui est-ce ?'],"Qu'est-ce que c'est ?",{note:'Sache → <b>Qu\'est-ce que c\'est ?</b>'}),
+    C('Was fragst du? 👧 (ein Mädchen)','___',['Qui est-ce ?',"Qu'est-ce que c'est ?"],'Qui est-ce ?',{note:'Person → <b>Qui est-ce ?</b>'}),
+    C('Was fragst du? ✏️ (ein Stift)','___',["Qu'est-ce que c'est ?",'Qui est-ce ?'],"Qu'est-ce que c'est ?"),
+    C('Was fragst du? 👴 (der Opa)','___',['Qui est-ce ?',"Qu'est-ce que c'est ?"],'Qui est-ce ?'),
+    C('<i>Im Zimmer gibt es einen Hund.</i>','Dans la chambre, ___ un chien.',['il y a','il est','il a'],'il y a',{note:'<b>il y a</b> = es gibt'}),
+    C('<i>Es gibt drei Katzen im Garten.</i>','___ trois chats dans le jardin.',['Il y a','Ils sont','Ils ont'],'Il y a'),
+    { type:'build', erz:'Bau den Satz: <i>Was ist das? – Das ist ein Knochen.</i> (l\'os = der Knochen)', tiles:["Qu'est-ce que c'est ?","C'est",'un','os','Qui est-ce ?'], answer:"Qu'est-ce que c'est ? C'est un os" },
+  ]},
+
+  nombres: { icon:'🔢', titre:'Les nombres', titel:'Zahlen 0–31', steps:[
+    D('Zahlen! 0 bis 16 haben eigene Wörter: zéro, un, deux, trois, quatre, cinq, six, sept, huit, neuf, dix, onze, douze, treize, quatorze, quinze, seize.',
+      'Ab 17 wird zusammengesetzt: «dix-sept» (10+7), «dix-huit», «dix-neuf». Dann «vingt» (20), «vingt et un» (21 – mit «et»!), «vingt-deux», … «trente» (30), «trente et un» (31).',
+      'Achtung, typische Fehler: «cinq» (mit q), «six» und «dix» (mit x), «vingt» (mit gt). Und bei 21 und 31 steht «et» ohne Bindestrich.'),
+    { type:'apporte', set:'nombre', n:8, erz:'Apportieren mit Zahlen! 🦴 Tippe den Knochen mit dem richtigen Zahlwort an.' },
+    { type:'listen', erz:'Hör zu! Welche Zahl ist das?', say:'quatorze', options:['14','4','40'], answer:'14' },
+    { type:'listen', erz:'Und diese?', say:'seize', options:['16','6','13'], answer:'16' },
+    { type:'listen', erz:'Und diese?', say:'vingt et un', options:['21','20','12'], answer:'21' },
+    F('Schreib als Wort: <b>5</b>','___',['cinq'],{hints:['mit q am Ende']}),
+    F('Schreib als Wort: <b>12</b>','___',['douze'],{}),
+    F('Schreib als Wort: <b>15</b>','___',['quinze'],{}),
+    F('Schreib als Wort: <b>18</b>','___',['dix-huit','dix huit'],{hints:['10 + 8 → dix-…']}),
+    F('Schreib als Wort: <b>20</b>','___',['vingt'],{hints:['mit gt am Ende']}),
+    F('Schreib als Wort: <b>21</b>','___',['vingt et un'],{hints:['20 <b>et</b> 1']}),
+    C('Wie alt ist {N}? «{N} a trois ans.»','{N} a trois ans.',['3 Jahre','13 Jahre','30 Jahre'],'3 Jahre'),
+    C('Telefonnummer! «C\'est le 06 15 12 18.» Was ist «quinze»?','quinze',['15','5','50'],'15'),
+    { type:'apporte', set:'nombre', n:8, erz:'Noch eine Runde – diesmal mit anderen Zahlen! 🦴' },
+  ]},
+
+  jours: { icon:'📅', titre:'Les jours', titel:'Wochentage', steps:[
+    D('Die Wochentage: «lundi» (Montag), «mardi», «mercredi», «jeudi», «vendredi», «samedi», «dimanche» (Sonntag).',
+      'Wichtig: Sie werden <b>klein</b> geschrieben! Und alle außer dimanche enden auf «-di». «le lundi» heißt <i>montags</i> (jeden Montag).',
+      'Eselsbrücke: lun<b>di</b> = Mond (lune) · mar<b>di</b> = Mars · mercre<b>di</b> = Merkur · jeu<b>di</b> = Jupiter · vendre<b>di</b> = Venus.'),
+    { type:'apporte', set:'jour', n:8, erz:'Apportieren mit Wochentagen! 🦴 7 Knochen, 7 Tage.' },
+    { type:'build', erz:'Bring die Wochentage in die richtige Reihenfolge!', tiles:['lundi','mardi','mercredi','jeudi','vendredi','samedi','dimanche'].sort(()=>Math.random()-.5), answer:'lundi mardi mercredi jeudi vendredi samedi dimanche' },
+    F('Schreib: <b>Mittwoch</b>','___',['mercredi'],{}),
+    F('Schreib: <b>Donnerstag</b>','___',['jeudi'],{}),
+    F('Schreib: <b>Samstag</b>','___',['samedi'],{}),
+    C('Heute ist «mardi». Was ist morgen?','Demain, c\'est ___.',['mercredi','lundi','jeudi'],'mercredi',{de:'Morgen ist Mittwoch.'}),
+    C('«Le samedi, {N} joue au parc.» Was heißt das?','Le samedi, {N} joue au parc.',['Samstags spielt {N} im Park.','Am Sonntag spielt {N} im Park.','{N} spielt im Park einkaufen.'],'Samstags spielt {N} im Park.'),
+    { type:'apporte', set:'jour', n:6, erz:'Schnelle Runde! 🦴' },
+  ]},
+
+  lire: { icon:'📖', titre:'Lire et comprendre', titel:'Lesen & verstehen', steps:[
+    D('Lesen wie in der Schulaufgabe! Du bekommst kurze Texte: Zettel, Flyer, Schilder, Briefe. Die Fragen sind auf Deutsch.',
+      'Strategie aus dem Buch: Du musst <b>nicht jedes Wort</b> verstehen! Such nur die Information, nach der gefragt wird. Viele Wörter kennst du aus dem Deutschen oder Englischen.'),
+    ...LIRE.map(t=>({type:'lire',...t})),
+  ]},
+
 };
 
 // Hundeschul-Rahmen vor jeder Lektion
@@ -161,7 +252,11 @@ const HS={
   avoir:'🎓 Hundeschule: avoir! Noch diese Lektion – dann gibt es das Halstuch für {N}. 🧣',
   art:'🎓 Hundeschule: Artikel! {N} sitzt brav und hört zu.',
   neg:'🎓 Hundeschule: Heute sagt {N} auch mal NEIN. 🥪',
-  poss:'🎓 Letzte Stunde! Danach bekommt {N} den Doktorhut 🎩 – und du bist bereit für die Probe-Schulaufgabe.',
+  u3:'🎓 Hundeschule: Unité 3! {N} hat Hunger – wir gehen einkaufen. 🛒',
+  nombres:'🎓 Hundeschule: Zählen! Wie viele Leckerlis bekommt {N}? 🦴',
+  jours:'🎓 Hundeschule: Wochentage! An welchem Tag geht {N} in den Park?',
+  lire:'🎓 Hundeschule: Lesen! {N} kann nicht lesen – aber du! 📖',
+  poss:'🎓 Hundeschul-Stunde mon/ma/mes! Danach bekommt {N} den Doktorhut 🎩 – und du bist bereit für die Probe-Schulaufgabe.',
 };
 for(const id in HS) GRAM[id].steps.unshift({type:'dialogue',lines:[{who:'Coco',erz:HS[id]}]});
 
@@ -217,19 +312,30 @@ const GEN={
   poss(){ const it=R([['mein','chien','mon'],['meine','sœur','ma'],['meine (Mz.)','copains','mes'],['dein','livre','ton'],['deine','maison','ta'],['sein/ihr','chat','son'],['seine/ihre','famille','sa'],['meine','amie','mon'],['deine (Mz.)','parents','tes']]);
     const opts={m:['mon','ma','mes'],t:['ton','ta','tes'],s:['son','sa','ses']}[it[2][0]];
     return {type:'choice',erz:`<i>${it[0]} …</i>`,fr:`___ ${it[1]}`,options:opts,answer:it[2],full:`${it[2]} ${it[1]}`,_topic:'mon/ma/mes'}; },
+  nombre(){ const i=1+Math.floor(Math.random()*31); return Math.random()<.5? {type:'fill',erz:`Schreib als Wort: <b>${i}</b>`,answer:[NUMW[i],NUMW[i].replace(/-/g,' ')],_topic:'Zahlen'} : {type:'listen',erz:'Hör zu! Welche Zahl?',say:NUMW[i],options:SH([String(i),String((i+10)%31||1),String((i+3)%31||2)].filter((x,j,a)=>a.indexOf(x)===j)),answer:String(i),_topic:'Zahlen'}; },
+  jour(){ const k=Math.floor(Math.random()*7); return Math.random()<.5? {type:'fill',erz:`Schreib auf Französisch: <b>${JDE[k]}</b>`,answer:[JOURS[k]],_topic:'Wochentage'} : {type:'choice',erz:`Nach «${JOURS[(k+6)%7]}» kommt …`,options:SH([JOURS[k],JOURS[(k+2)%7],JOURS[(k+5)%7]]),answer:JOURS[k],_topic:'Wochentage'}; },
+  pref(){ const [p,f]=R(PREF); return {type:'fill',strict:true,erz:'Setze «préférer» ein (Akzent beachten!):',fr:`${cap(p)} ___ le chocolat.`,answer:[f],_topic:'préférer/acheter'}; },
+  achat(){ const A={je:"achète",tu:'achètes',il:'achète',nous:'achetons',vous:'achetez',ils:'achètent'}; const p=R(Object.keys(A)); return {type:'fill',strict:true,erz:'Setze «acheter» (kaufen) ein:',fr:`${p==='je'?"J'":cap(p)+' '}___ un cadeau.`.replace("' ___","'___"),answer:[A[p]],_topic:'préférer/acheter'}; },
+  quiQuoi(){ const it=R([['📚 ein Buch',0],['👧 ein Mädchen',1],['✏️ ein Stift',0],['👨 der Lehrer',1],['🏠 ein Haus',0],['👵 die Oma',1]]); return {type:'choice',erz:`Was fragst du? ${it[0]}`,options:["Qu'est-ce que c'est ?",'Qui est-ce ?'],answer:it[1]?'Qui est-ce ?':"Qu'est-ce que c'est ?",_topic:'Fragen'}; },
+  ilya(){ return {type:'choice',erz:'<i>Es gibt einen Park.</i>',fr:'___ un parc.',options:['Il y a','Il est','Il a'],answer:'Il y a',_topic:'il y a'}; },
+  lire(){ const t=R(LIRE); const qs=SH(t.qs).slice(0,2); return {type:'lire',title:t.title,erz:t.erz,text:t.text,qs,_topic:'Lesen'}; },
   phrase(){ const it=R([['Ich heiße Léa.',"Je m'appelle Léa"],['Wie geht\'s?','Ça va'],['Wo wohnst du?','Tu habites où'],['Wir spielen Fußball.','Nous jouons au foot'],['Das ist meine Schwester.',"C'est ma sœur"],['Ich habe einen Hund.',"J'ai un chien"],['Sie sind nett.','Ils sont sympa']]);
     const t=it[1].split(' '); return {type:'build',erz:`Bau den Satz: <i>${it[0]}</i>`,tiles:SH([...t,R(['est','es','ma','les','nous'].filter(x=>!t.includes(x)))]),answer:it[1],_topic:'Sätze'}; },
 };
 // Probe-Schulaufgabe: feste Mischung der Aufgabentypen, Reihenfolge zufällig
 export function examLesson(){
-  const plan=['vocDeFr','vocDeFr','vocDeFr','vocFrDe','vocFrDe','ecoute','vocArt','ending','ending','ending','ending','endingPick','endingPick','etre','etre','etre','avoir','avoir','sontOnt','sontOnt','esEst','article','unUne','unUne','neg','poss','poss','phrase','phrase'];
+  const plan=['lire','lire','nombre','nombre','jour','jour','pref','achat','quiQuoi','ilya','vocDeFr','vocDeFr','vocFrDe','ecoute','vocArt','ending','ending','ending','endingPick','etre','etre','avoir','avoir','sontOnt','esEst','article','unUne','neg','poss','phrase'];
   USED=new Set(); const steps=SH(plan).map(k=>GEN[k]());
-  return { titre:'Probe-Schulaufgabe', exam:true, steps:[ {type:'dialogue',lines:[{who:'Coco',erz:`Probe-Schulaufgabe! ${steps.length} Aufgaben: Vokabeln, Hören, Endungen, être, avoir, Artikel, Verneinung … Jedes Mal anders gemischt.`},{who:'Coco',erz:'Wie in der echten Schulaufgabe: Tipps (💡) kosten den Punkt. Für jede richtige Antwort zeigt {N} einen Trick, und 🔥-Serien bringen Bonus-Knochen. Am Ende bekommst du eine Note – und siehst, was du noch üben solltest. «Bon courage !» 💪'}]}, ...steps ] };
+  return { titre:'Probe-Schulaufgabe', exam:true, steps:[ {type:'dialogue',lines:[{who:'Coco',erz:`Probe-Schulaufgabe! ${steps.length} Aufgaben: Lesen, Vokabeln, Hören, Zahlen, Wochentage, Endungen, être, avoir, préférer/acheter, Artikel, Verneinung … Jedes Mal anders gemischt.`},{who:'Coco',erz:'Wie in der echten Schulaufgabe: Tipps (💡) kosten den Punkt. Für jede richtige Antwort zeigt {N} einen Trick, und 🔥-Serien bringen Bonus-Knochen. Am Ende bekommst du eine Note – und siehst, was du noch üben solltest. «Bon courage !» 💪'}]}, ...steps ] };
 }
 
 // Runden fürs Knochen-Apportieren – verschiedene Sets
 // Runde: { pre, post, ans, de, tip }  → Anzeige: pre + ___ + post
 const cap=x=>x.charAt(0).toUpperCase()+x.slice(1);
+
+const NUMW=['zéro','un','deux','trois','quatre','cinq','six','sept','huit','neuf','dix','onze','douze','treize','quatorze','quinze','seize','dix-sept','dix-huit','dix-neuf','vingt','vingt et un','vingt-deux','vingt-trois','vingt-quatre','vingt-cinq','vingt-six','vingt-sept','vingt-huit','vingt-neuf','trente','trente et un'];
+const JOURS=['lundi','mardi','mercredi','jeudi','vendredi','samedi','dimanche'], JDE=['Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag','Sonntag'];
+const PREF=[['je','préfère'],['tu','préfères'],['il','préfère'],['elle','préfère'],['nous','préférons'],['vous','préférez'],['ils','préfèrent'],['elles','préfèrent']];
 const SETS={
   er:{ labels:['e','es','ons','ez','ent'], tip:'Denk an den Rap: E – ES – E, ONS – EZ – ENT!', make(){ const [inf,st,de,obj]=R(ERV), [p,e]=R(PRON); const sb=subj(p,st+e);
       return { pre:`${sb}${sb.endsWith("'")?'':''}${st}`, post:` ${obj}`, ans:e, de:`${inf} = ${de}`, tip:`${p} → -${e}`, key:p }; } },
@@ -243,9 +349,16 @@ const SETS={
       return { pre:"C'est ".replace("C'est ",it[1]==='des'?'Ce sont ':"C'est "), post:` ${it[0]}.`, ans:it[1], de:it[2], tip:`${it[1]} ${it[0]}`, key:'unune' }; } },
   poss:{ labels:['mon','ma','mes'], tip:'mon = männlich (oder Vokal) · ma = weiblich · mes = Mehrzahl', make(){ const it=R([['chien','mon','mein Hund'],['sœur','ma','meine Schwester'],['copains','mes','meine Freunde'],['livre','mon','mein Buch'],['maison','ma','mein Haus'],['amie','mon','meine Freundin (Vokal!)'],['parents','mes','meine Eltern'],['chambre','ma','mein Zimmer'],['école','mon','meine Schule (Vokal!)']]);
       return { pre:'', post:` ${it[0]}`, ans:it[1], de:it[2], tip:`${it[1]} ${it[0]}`, key:'poss' }; } },
+  pref:{ labels:['préfère','préfères','préférons','préférez','préfèrent'], tip:'è bei je/tu/il/ils (Endung stumm) · é bei nous/vous', make(){ const [p,f]=R(PREF); const o=R(['le foot','la musique','les chats','le tennis','la danse','les BD']);
+      return { pre:`${cap(p)} `, post:` ${o}.`, ans:f, de:'préférer = lieber mögen', tip:`${p} → ${f}`, key:p }; } },
+  nombre:{ dyn:true, init(){ const pool=SH([...Array(32).keys()].slice(1)).slice(0,6); return pool; }, tip:'17 = dix-sept · 21 = vingt et un', make(pool){ const i=R(pool); return { pre:`${i} = `, post:'', ans:NUMW[i], de:'Zahl als Wort', tip:`${i} = ${NUMW[i]}`, key:'n'+i }; } },
+  jour:{ labels:JOURS, tip:'lundi · mardi · mercredi · jeudi · vendredi · samedi · dimanche', make(){ const k=Math.floor(Math.random()*7), t=Math.floor(Math.random()*3);
+      if(t===0) return { pre:`${JDE[k]} = `, post:'', ans:JOURS[k], de:'Wochentag', tip:`${JDE[k]} = ${JOURS[k]}`, key:'j'+k };
+      if(t===1){ const a=(k+6)%7; return { pre:`Nach «${JOURS[a]}» kommt `, post:'', ans:JOURS[k], de:'Welcher Tag kommt danach?', tip:`${JOURS[a]} → ${JOURS[k]}`, key:'j'+k }; }
+      const b=(k+1)%7; return { pre:'', post:` kommt vor «${JOURS[b]}»`, ans:JOURS[k], de:'Welcher Tag kommt davor?', tip:`${JOURS[k]} → ${JOURS[b]}`, key:'j'+k }; } },
   neg:{ labels:['ne',"n'"], tip:"Vor einem Vokal wird ne zu n'", make(){ const it=R([['Je','parle','pas allemand'],['Tu','aimes','pas le foot'],['Il','est','pas là'],['Nous','jouons','pas'],['Elle','habite','pas à Paris'],['Vous','regardez','pas la télé'],['Ils','ont','pas de chat'],['Je','suis','pas fatigué']]);
       const v=vowel(it[1]); return { pre:`${it[0]} `, post:`${v?'':' '}${it[1]} ${it[2]}.`, ans:v?"n'":'ne', de:'Verneinung', tip:v?`vor Vokal (${it[1]}) → n'`:'vor Konsonant → ne', key:'neg', dpost:` ${it[1]} ${it[2]}.` }; } },
 };
-export function fetchSet(set='er',n=8){ const S=SETS[set]||SETS.er; const out=[]; let last='';
-  for(let k=0;k<200&&out.length<n;k++){ const r=S.make(); if(r.ans===last) continue; last=r.ans; out.push(r); }
-  return { labels:S.labels, tip:S.tip, rounds:out }; }
+export function fetchSet(set='er',n=8){ const S=SETS[set]||SETS.er; const out=[]; let last=''; const pool=S.init?S.init():null;
+  for(let k=0;k<200&&out.length<n;k++){ const r=S.make(pool); if(r.ans===last) continue; last=r.ans; out.push(r); }
+  return { labels:pool?pool.map(i=>NUMW[i]):S.labels, tip:S.tip, rounds:out }; }

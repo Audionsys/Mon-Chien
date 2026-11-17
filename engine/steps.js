@@ -39,7 +39,7 @@ export function solutionOf(st){
 function markFurthest(){ const f=P.furthest||{chapter:0,step:0}; if(P.chapter>f.chapter || (P.chapter===f.chapter && P.step>f.step)) P.furthest={chapter:P.chapter,step:P.step}; }
 export { markFurthest };
 // kurze Beschreibung eines Schritts (für "Hierhin springen")
-export function stepLabel(st){ const map={apporte:'🦴 Apportieren',conj:'📘 Konjugation',rappel:'🔁 Wiederholung',intro:'🎯 Einführung',name:'🐶 Name geben',tuto:'🧭 Tutorial',dialogue:'💬 Geschichte',command:'🗣️ Kommando',choice:'👆 Auswählen',fill:'✍️ Lücke füllen',build:'🧩 Satz bauen',object:'🔍 Gegenstand finden',teach:'🧠 Vokabeln beibringen',listen:'👂 Hören',defi:'🏆 Hundeshow (Test)'};
+export function stepLabel(st){ const map={lire:'📖 Lesen',apporte:'🦴 Apportieren',conj:'📘 Konjugation',rappel:'🔁 Wiederholung',intro:'🎯 Einführung',name:'🐶 Name geben',tuto:'🧭 Tutorial',dialogue:'💬 Geschichte',command:'🗣️ Kommando',choice:'👆 Auswählen',fill:'✍️ Lücke füllen',build:'🧩 Satz bauen',object:'🔍 Gegenstand finden',teach:'🧠 Vokabeln beibringen',listen:'👂 Hören',defi:'🏆 Hundeshow (Test)'};
   let t=map[st.type]||st.type; if(st.type==='command') t+=': '+COMMANDS[st.cmd].de; else if(st.type==='teach') t+=': '+(DECKS[st.deck]?.titel||''); else if(st.de && st.type!=='dialogue') t+=': '+st.de.replace(/<[^>]+>/g,'').slice(0,46); return N(t); }
 
 export class Runner {
@@ -106,6 +106,11 @@ export class Runner {
     const done=()=>{ if(back&&this.step===back){ this.refresh(); } };
     draw(-1); UI.chips([{cls:'sol',html:'⏹ Stopp',onClick:()=>{ stopRap(); }},{html:'🔁 Nochmal',onClick:()=>{ stopRap(); this.rapCard(id,back); }}]);
     playRap(id,{rounds:2,onLine:i=>{ draw(i); setTimeout(()=>UI.scrollInBubble?.(document.querySelector('#bubble .rapl.on')),30); this.g.dog?.happy?.(500); },onEnd:()=>{ if(back) setTimeout(done,50); else { UI.chips([{cls:'sol',html:'🔁 Nochmal',onClick:()=>this.rapCard(id)},{html:'📘 Grammatik',onClick:()=>this.g.openGram?.()}]); } }}); }
+  lAnswer(st,o){ const q=st.qs[this.lq]; if(!q) return;
+    if(o===q.answer){ sfx.success(); this.g.fx.hearts(2); this.lBad=new Set(); this.lq++;
+      const ok=UI.tipLine(`✅ <b>${UI.esc(N(q.answer))}</b>${q.why?` – ${UI.esc(q.why)}`:''}`);
+      if(this.lq>=st.qs.length){ this.complete(st,{extra:ok}); this.g.dog.happy(1500); } else { this.refresh(ok); this.g.dog.happy(800); } }
+    else { this.lBad.add(o); this.wrong++; this.miss(UI.tipLine(`Nicht ganz – lies noch mal genau nach!${q.why&&this.lBad.size>=2?` Tipp: ${UI.esc(q.why)}`:''}`)); } }
   tapBone(id){ const st=this.step; if(!st||st.type!=='apporte'||this.aBusy) return; const r=this.aR[this.aI]; const lb=id.slice(4);
     this.aBusy=true; UI.chips([]); const sp=P.step, ri=this.aI;
     const done=()=>{ if(this.step!==st||this.aI!==ri) return; setTimeout(()=>this.g.endBones?.reset(id),700);
@@ -326,6 +331,13 @@ const H = {
       UI.chips(this.aL.map(e=>({cls:'ans fr',html:UI.esc(this.aL.includes('ons')?'-'+e:e),onClick:()=>this.tapBone('end:'+e)})).concat(this.aErr>=2?[{cls:'help',html:`💡 ${UI.esc(r.tip)}`,onClick:()=>{}}]:[])); },
     input(st,raw){ const e=raw.trim().replace(/^-/,'').replace(/[.!?]+$/,'').toLowerCase(); const hit=this.aL.find(l=>norm(l)===norm(e)); if(hit){ this.tapBone('end:'+hit); return true; } return false; },
   },
+  // Leseverstehen: Text + Fragen auf Deutsch
+  lire:{
+    start(st){ this.lq=0; this.lBad=new Set(); UI.setInputMode('none'); this.refresh(); },
+    render(st,extra=''){ const q=st.qs[this.lq]; if(!q) return;
+      UI.coco(`<span class="mission" style="display:block">❓ ${UI.esc(N(q.q))} <small style="color:#999">(${this.lq+1}/${st.qs.length})</small></span>${extra}<div class="lirebox">${N(st.text)}</div>`,{chirp:false});
+      UI.chips(q.options.map(o=>({cls:'ans'+(this.lBad.has(o)?' bad':''),html:UI.esc(N(o)),onClick:()=>this.lAnswer(st,o)}))); },
+  },
   // Konjugation auswendig lernen: Tabelle ansehen → per Antippen → selbst schreiben
   conj:{
     start(st){ this.cRows=st.forms.map((f,i)=>i); this.cDone=[]; this.cPhase= st.phase||'look'; this.cTry=0;
@@ -432,11 +444,11 @@ teach:{
   },
 
   listen:{
-    start(st){ this.opts=shuffle(st.options.slice()); this.bad=new Set(); UI.setInputMode('text','Antippen, schreiben oder sagen …'); this.refresh(); setTimeout(()=>say(st.answer,{rate:0.8,word:true}),350); },
+    start(st){ this.opts=shuffle(st.options.slice()); this.bad=new Set(); UI.setInputMode('text','Antippen, schreiben oder sagen …'); this.refresh(); setTimeout(()=>say(st.say||st.answer,{rate:0.8,word:true}),350); },
     render(st,extra=''){ this.prompt(st,extra);
-      UI.chips([{cls:'sol',html:'🔊 Nochmal hören',onClick:()=>say(st.answer,{rate:0.75,word:true})},
+      UI.chips([{cls:'sol',html:'🔊 Nochmal hören',onClick:()=>say(st.say||st.answer,{rate:0.75,word:true})},
         ...this.opts.map(o=>({cls:'fr opt'+(this.bad.has(o)?' bad':''),html:UI.esc(N(o)),onClick:()=>{
-          if(o===st.answer) this.complete(st,{sayText:st.answer}); else { this.bad.add(o); say(o,{rate:0.8,word:true}); this.miss(UI.tipLine(`Das war <b class="fr">${UI.esc(o)}</b> – hör nochmal genau hin!`)); } }})),
+          if(o===st.answer) this.complete(st,{sayText:st.say||st.answer}); else { this.bad.add(o); if(!st.say) say(o,{rate:0.8,word:true}); this.miss(UI.tipLine(`Das war <b class="fr">${UI.esc(o)}</b> – hör nochmal genau hin!`)); } }})),
         ...this.helpChip(st)]); },
   },
 tuto:{

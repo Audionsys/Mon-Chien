@@ -38,7 +38,7 @@ A.preloadMusic('music.mp3');
 function headScreen(){ const p=dog.headWorld(); p.y+=0.22; p.project(world.camera); return {x:(p.x*0.5+0.5)*innerWidth, y:(-p.y*0.5+0.5)*innerHeight}; }
 const fx={ hearts(n=3){ const s=headScreen(); UI.floatFx(s.x,s.y,['❤️','💛','✨','🧡'],n); } };
 dog.on('say',(t,ms)=>UI.dogSay(t,ms)); dog.on('hearts',n=>fx.hearts(n));
-export const VERSION='70';
+export const VERSION='71';
 try{ document.getElementById('ver').textContent='v'+VERSION; }catch(e){}
 function toast(html,ms=2600){ const t=$('toast'); t.innerHTML=N(html); t.classList.add('on'); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('on'),ms); }
 
@@ -97,7 +97,7 @@ function boneObj(label){ const g2=new THREE.Group(); const m=new THREE.MeshStand
   g2.userData.radius=0.035; return g2; }
 g.endBones={
   place(labels){ this.clear(); const dp=dog.root.position; const n=labels.length;
-    labels.forEach((lb,i)=>{ const id='end:'+lb; const o=boneObj(lb); const S=(n<=3?[[-0.4,0.1],[0,0.25],[0.4,0.1]]:n===4?[[-0.45,0.05],[0.45,0.05],[-0.22,0.38],[0.22,0.38]]:n===6?[[-0.5,0.02],[0,0.05],[0.5,0.02],[-0.5,0.38],[0,0.4],[0.5,0.38]]:[[-0.5,0.02],[0,0.1],[0.5,0.02],[-0.27,0.38],[0.27,0.38]])[i]||[0,0.6]; const rc=new THREE.Raycaster(); rc.setFromCamera(new THREE.Vector2(S[0],S[1]),world.camera);
+    labels.forEach((lb,i)=>{ const id='end:'+lb; const o=boneObj(lb); const S=(n===7?[[-0.55,0.0],[-0.18,0.05],[0.18,0.05],[0.55,0.0],[-0.4,0.38],[0,0.42],[0.4,0.38]]:n<=3?[[-0.4,0.1],[0,0.25],[0.4,0.1]]:n===4?[[-0.45,0.05],[0.45,0.05],[-0.22,0.38],[0.22,0.38]]:n===6?[[-0.5,0.02],[0,0.05],[0.5,0.02],[-0.5,0.38],[0,0.4],[0.5,0.38]]:[[-0.5,0.02],[0,0.1],[0.5,0.02],[-0.27,0.38],[0.27,0.38]])[i]||[0,0.6]; const rc=new THREE.Raycaster(); rc.setFromCamera(new THREE.Vector2(S[0],S[1]),world.camera);
       const hitP=new THREE.Vector3(); rc.ray.intersectPlane(new THREE.Plane(new THREE.Vector3(0,1,0),0),hitP)||hitP.set(dp.x,0,dp.z-1); const p=room.clampPoint(hitP);
       o.position.set(p.x,0,p.z); room.addProp({id,type:'toy',pos:[p.x,p.z],word:{fr:'-'+lb,de:'Endung'}},o); EB.ids.push(id); EB.slots[id]=new THREE.Vector3(p.x,0,p.z); });
     dog.faceCamera(); },
@@ -604,7 +604,7 @@ function openGram(){
   const ids=Object.keys(GRAM), nxt=ids.find(id=>!G[id]);
   let h=`<p class="sub">Einfach immer auf den grünen Knopf tippen – dann kommst du Schritt für Schritt durch alles. Am Ende wartet die Probe-Schulaufgabe!</p>`;
   h+=`<button class="row" id="gnext" style="background:#2fb36b;color:#fff"><b style="color:#fff">▶ ${nxt?`Weiter lernen: ${GRAM[nxt].icon} ${esc(GRAM[nxt].titel)}`:'📝 Probe-Schulaufgabe schreiben'}</b><small style="color:#eafff1">${nxt?`Schritt ${ids.indexOf(nxt)+1} von ${ids.length+1}`:'Alle Lektionen geschafft! Jetzt testen – so oft du willst.'}</small></button>`;
-  const ex=(P.exams||[]).slice(-5); h+=`<button class="row" id="gexam" style="background:#ffe1e1"><b>📝 Probe-Schulaufgabe</b><small>29 Aufgaben, jedes Mal neu gemischt · mit Note${ex.length?` · zuletzt: ${ex.map(e=>e.n).join(', ')}`:''}</small></button>`;
+  const ex=(P.exams||[]).slice(-5); h+=`<button class="row" id="gexam" style="background:#ffe1e1"><b>📝 Probe-Schulaufgabe</b><small>30 Aufgaben inkl. Lesen, jedes Mal neu gemischt · mit Note${ex.length?` · zuletzt: ${ex.map(e=>e.n).join(', ')}`:''}</small></button>`;
   h+=`<button class="row" id="gsong" style="background:#e9ffe4"><b>🎵 Der Song: „Mein Hund versteht Französisch“</b><small>-er-Endungen, être und avoir zum Mitrappen – mit Text</small></button>`;
   h+=`<div class="menutiles"><button data-rap="er"><span>🎤</span><b>-er-Rap</b><small>E – ES – E …</small></button><button data-rap="etre"><span>🎤</span><b>être-Rap</b><small>suis, es, est …</small></button><button data-rap="avoir"><span>🎤</span><b>avoir-Rap</b><small>ai, as, a …</small></button></div>`;
   h+=`<button class="row" id="gmix" style="background:#fff1c9"><b>💪 Schulaufgaben-Mix</b><small>14 gemischte Aufgaben ohne Erklärung – wie in der Prüfung</small></button>`;
