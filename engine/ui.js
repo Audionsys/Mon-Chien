@@ -97,3 +97,7 @@ export function sheetIsOpen(){ return $('sheet').classList.contains('open'); }
 // ---------- Gedankenblase des Hundes ----------
 export function think(html,cls=''){ const t=$('think'); t.innerHTML=html; t.className='on '+cls; }
 export function thinkHide(){ $('think').className=''; }
+
+// nur die Karte scrollen – nie die Seite (iOS: Seiten-Scroll verschiebt sonst alle Touch-Ziele)
+export function scrollInBubble(el){ if(!el) return; const c=el.closest('#bubble'); if(!c) return; const a=el.getBoundingClientRect(), b=c.getBoundingClientRect();
+  if(a.bottom>b.bottom) c.scrollTop+=a.bottom-b.bottom+8; else if(a.top<b.top) c.scrollTop-=b.top-a.top+8; }

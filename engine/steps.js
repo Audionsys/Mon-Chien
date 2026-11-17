@@ -105,8 +105,8 @@ export class Runner {
   rapCard(id,back){ this.hold=true; const R=RAPS[id]; const draw=cur=>UI.coco(`<span class="who">🎤 ${UI.esc(R.title)}</span>${R.lines.map((l,i)=>`<span class="rapl${i===cur?' on':''}">${l.map(([lg,t,sh])=>lg==='fr'?`<b class="fr">${UI.esc(t)}</b>`:sh?`<b style="color:#e07b39">${UI.esc(sh)}</b>`:UI.esc(t)).join(' ')}</span>`).join('')}`,{chirp:false});
     const done=()=>{ if(back&&this.step===back){ this.refresh(); } };
     draw(-1); UI.chips([{cls:'sol',html:'⏹ Stopp',onClick:()=>{ stopRap(); }},{html:'🔁 Nochmal',onClick:()=>{ stopRap(); this.rapCard(id,back); }}]);
-    playRap(id,{rounds:2,onLine:i=>{ draw(i); setTimeout(()=>document.querySelector('#bubble .rapl.on')?.scrollIntoView({block:'nearest'}),30); this.g.dog?.happy?.(500); },onEnd:()=>{ if(back) setTimeout(done,50); else { UI.chips([{cls:'sol',html:'🔁 Nochmal',onClick:()=>this.rapCard(id)},{html:'📘 Grammatik',onClick:()=>this.g.openGram?.()}]); } }}); }
-  startGram(id,list){ const L=list||GRAM[id]; this.freeplay=false; this.review={steps:L.steps,i:0,gram:id,title:L.titre,exam:!!L.exam}; UI.closeSheet?.(); this.begin(); }
+    playRap(id,{rounds:2,onLine:i=>{ draw(i); setTimeout(()=>UI.scrollInBubble?.(document.querySelector('#bubble .rapl.on')),30); this.g.dog?.happy?.(500); },onEnd:()=>{ if(back) setTimeout(done,50); else { UI.chips([{cls:'sol',html:'🔁 Nochmal',onClick:()=>this.rapCard(id)},{html:'📘 Grammatik',onClick:()=>this.g.openGram?.()}]); } }}); }
+  startGram(id,list,at=0){ const L=list||GRAM[id]; this.freeplay=false; this.review={steps:L.steps,i:at,gram:id,title:L.titre,exam:!!L.exam}; if(!L.exam&&id!=='mix'){ P.gramCur={id,i:at}; save(); } UI.closeSheet?.(); this.begin(); }
   miss(extra){ if(Math.random()<0.4) setTimeout(()=>this.g.quip?.('oops'),2200); this.wrong++; this.hint=Math.min(this.ladder(this.step).length, Math.max(this.hint, 1) + (this.wrong>1?1:0)); sfx.soft_no(); this.refresh(extra); }
 
   // ---- geschafft ----
@@ -132,18 +132,18 @@ export class Runner {
     UI.chips([{cls:'sol', html:'Weiter ➜', onClick:()=>this.next()}]);
   }
   next(){
-    if(this.review){ this.review.i++; if(this.review.i>=this.review.steps.length && this.review.exam){ const R=this.review; this.review=null; this.hold=true; const pc=R.max?R.score/R.max:0;
+    if(this.review){ this.review.i++; if(this.review.gram&&!this.review.exam&&P.gramCur){ if(this.review.i>=this.review.steps.length) delete P.gramCur; else P.gramCur.i=this.review.i; save(); } if(this.review.i>=this.review.steps.length && this.review.exam){ const R=this.review; this.review=null; this.hold=true; const pc=R.max?R.score/R.max:0;
         const note= pc>=.88?1: pc>=.75?2: pc>=.62?3: pc>=.50?4: pc>=.30?5:6; P.exams=P.exams||[]; P.exams.push({d:Date.now(),s:R.score,m:R.max,n:note}); if(note<=2) P.treats+=5; else P.treats+=2; save(); sfx.chapter(); this.g.fx.hearts(note<=3?8:3); if(note<=3) this.g.celebrate?.(); this.renderTop();
         const weak=Object.entries(R.weak||{}).sort((a,b)=>b[1]-a[1]); const LES={'-er-Endungen':'er2','être':'etre','avoir':'avoir','être/avoir':'avoir','Artikel':'art','ne … pas':'neg','mon/ma/mes':'poss'};
         const msg=['','Wahnsinn! 🏆','Sehr gut! 🎉','Gut gemacht! 👍','Bestanden – da geht noch was! 💪','Noch nicht – aber genau dafür üben wir! 💪','Nicht schlimm – fang mit den Lektionen an, dann klappt’s! 💪'][note];
         UI.coco(`<span class="mission">📝 ${R.score} von ${R.max} Punkten → Note <b>${note}</b></span><span class="erz">${msg}</span>${weak.length?`<span class="de">Das solltest du noch üben: ${weak.map(([t,n])=>`<b>${UI.esc(t)}</b> (${n} Fehler)`).join(', ')}</span>`:'<span class="de">Keine Fehler! «Parfait !»</span>'}<span class="note">Die Note ist nur eine Schätzung – aber jede Runde ist anders gemischt. Mehrmals machen lohnt sich!</span>`);
         say(note<=2?'Bravo ! Excellent !':'Bon travail !');
-        const ch=[{cls:'sol',html:'📝 Neue Probe-Schulaufgabe',onClick:()=>this.g.startExam?.()}]; const w0=weak.find(([t])=>LES[t]); if(w0) ch.push({html:`📘 ${UI.esc(w0[0])} üben`,onClick:()=>this.startGram(LES[w0[0]])}); ch.push({html:'🐶 Zurück zum Spiel',onClick:()=>{ this.hold=false; this.start(); }});
+        const ch=[{cls:'sol',html:'📝 Neue Probe-Schulaufgabe',onClick:()=>this.g.startExam?.()}]; const w0=weak.find(([t])=>LES[t]); if(w0) ch.push({html:`📘 ${UI.esc(w0[0])} üben`,onClick:()=>this.startGram(LES[w0[0]])}); ch.push({html:'🐶 Zurück zum Spiel',onClick:()=>{ this.hold=false; delete P.gramCur; save(); this.start(); }});
         UI.chips(ch); return; }
       if(this.review.i>=this.review.steps.length && this.review.gram){ const id=this.review.gram; this.review=null; this.hold=true; P.gram=P.gram||{}; const first=!P.gram[id]; P.gram[id]=(P.gram[id]||0)+1; if(first) P.treats+=3; save(); sfx.chapter(); this.g.fx.hearts(5); this.g.celebrate?.(); this.renderTop();
         UI.coco(`<span class="mission fr">Bravo !</span><span class="erz">Lektion geschafft!${first?' +3 🦴':''} Was noch wackelt, kommt in der Wiederholung wieder.</span>`); say('Bravo !');
         const ids=Object.keys(GRAM), nx=id==='mix'?null:ids[ids.indexOf(id)+1];
-        UI.chips([ nx&&GRAM[nx]?{cls:'sol',html:`Weiter: ${GRAM[nx].icon} ${GRAM[nx].titel} ➜`,onClick:()=>this.startGram(nx)}:{cls:'sol',html:'📝 Weiter: Probe-Schulaufgabe ➜',onClick:()=>this.g.startExam?.()}, {html:'🔁 Nochmal',onClick:()=>id==='mix'?this.g.openGram?.():this.startGram(id)}, {html:'🐶 Zurück zum Spiel',onClick:()=>{ this.hold=false; this.start(); }} ]); return; }
+        UI.chips([ nx&&GRAM[nx]?{cls:'sol',html:`Weiter: ${GRAM[nx].icon} ${GRAM[nx].titel} ➜`,onClick:()=>this.startGram(nx)}:{cls:'sol',html:'📝 Weiter: Probe-Schulaufgabe ➜',onClick:()=>this.g.startExam?.()}, {html:'🔁 Nochmal',onClick:()=>id==='mix'?this.g.openGram?.():this.startGram(id)}, {html:'🐶 Zurück zum Spiel',onClick:()=>{ this.hold=false; delete P.gramCur; save(); this.start(); }} ]); return; }
       if(this.review.i>=this.review.steps.length){ this.review=null; UI.coco(`<span class="mission fr">Révision terminée !</span>${UI.deLine('Wiederholung geschafft! Weiter geht’s.')}`); sfx.chapter(); UI.chips([{cls:'sol',html:'Weiter ➜',onClick:()=>this.start()}]); return; } return this.begin(); }
     P.step++; markFurthest(); save(); if(P.step>=this.chapter.steps.length) return this.chapterDone(); this.begin();
   }
@@ -311,7 +311,7 @@ const H = {
         UI.chips([...(rapId?[{html:'🎤 Rap',onClick:()=>this.rapCard(rapId,st)}]:[]),{html:'🔊 Vorlesen',onClick:()=>say(st.forms.map(f=>f[0].replace(/'$/,'')+(f[0].endsWith("'")?'':' ')+f[1]).join(', '))},{cls:'sol',html:'Gemerkt? Teste dich ➜',onClick:()=>{ this.cPhase='pick'; this.refresh(); }}]); return; }
       const f=st.forms[cur];
       UI.coco(`<span class="erz">${this.cPhase==='pick'?'Tippe die richtige Form an:':'Jetzt ohne Hilfe – schreib die Form:'} <b>${UI.esc(f[0])} ___</b>${f[2]?` <i>(${UI.esc(f[2])})</i>`:''}</span>${H.conj.table.call(this,st,cur)}${extra}`,{chirp:false});
-      setTimeout(()=>document.querySelector('#bubble table.conj tr.cur')?.scrollIntoView({block:'nearest'}),30);
+      setTimeout(()=>UI.scrollInBubble?.(document.querySelector('#bubble table.conj tr.cur')),30);
       if(this.cPhase==='pick'){ const opts=shuffle([...new Set(st.forms.map(x=>x[1]))]); UI.chips(opts.map(o=>({cls:'ans fr',html:UI.esc(o),onClick:()=>this.cAnswer(st,o)}))); }
       else UI.chips(this.cTry>=2?[{cls:'sol fr',html:UI.esc(f[1]),onClick:()=>this.cAnswer(st,f[1])}] : this.cTry>=1?[{cls:'help',html:`💡 Fängt an mit: ${UI.esc(f[1].slice(0,Math.max(1,f[1].length-2)))}…`,onClick:()=>{}}]:[]); },
     input(st,raw){ if(this.cPhase==='look') return false; this.cAnswer(st,raw.trim().replace(/[.!?]+$/,'').replace(/^(ils\/elles|il\/elle\/on|elles|ils|elle|il|on|nous|vous|tu|je|j['’])\s*/i,'').trim()); return true; },

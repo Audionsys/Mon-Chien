@@ -38,7 +38,7 @@ A.preloadMusic('music.mp3');
 function headScreen(){ const p=dog.headWorld(); p.y+=0.22; p.project(world.camera); return {x:(p.x*0.5+0.5)*innerWidth, y:(-p.y*0.5+0.5)*innerHeight}; }
 const fx={ hearts(n=3){ const s=headScreen(); UI.floatFx(s.x,s.y,['❤️','💛','✨','🧡'],n); } };
 dog.on('say',(t,ms)=>UI.dogSay(t,ms)); dog.on('hearts',n=>fx.hearts(n));
-export const VERSION='65';
+export const VERSION='66';
 try{ document.getElementById('ver').textContent='v'+VERSION; }catch(e){}
 function toast(html,ms=2600){ const t=$('toast'); t.innerHTML=N(html); t.classList.add('on'); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('on'),ms); }
 
@@ -440,7 +440,7 @@ function openChapters(){
   h+=`<button class="row" id="gramBtn2" style="background:#e8f1ff"><b>📘 Grammatik-Trainer</b><small>Endungen, être, avoir … + Probe-Schulaufgabe</small></button>`;
   COURSE.chapters.forEach((ch,i)=>{ const open=testMode||i<=P.unlocked; const done=P.results?.[ch.id]; h+=`<button class="row" data-ch="${i}" ${open?'':'disabled'}><b>${i+1}. ${esc(N(ch.titre))} ${i===P.chapter?'📍':done?'✅':''}</b><small>${esc(N(ch.titel))}${ch.unite?` · 📘 ${/\d/.test(ch.unite)?'Unité '+ch.unite:ch.unite}`:''}${open?'':' · 🔒'}</small></button>`; });
   UI.openSheet('🗺️ Kapitel', h, {onOpen:b=>{ b.querySelector('#mapBtn2').onclick=()=>openMap(); b.querySelector('#gramBtn2').onclick=()=>openGram();
-    b.querySelectorAll('[data-ch]').forEach(x=>x.onclick=()=>{ if(x.disabled) return; P.chapter=+x.dataset.ch; P.step=0; save(); run.review=null; run.freeplay=false; UI.closeSheet(); if(!P.name){P.chapter=0;} run.begin(); }); }});
+    b.querySelectorAll('[data-ch]').forEach(x=>x.onclick=()=>{ if(x.disabled) return; delete P.gramCur; P.chapter=+x.dataset.ch; P.step=0; save(); run.review=null; run.freeplay=false; UI.closeSheet(); if(!P.name){P.chapter=0;} run.begin(); }); }});
 }
 function openDecks(){
   let h=N('<p class="sub">Bring {N} Wörter bei – wie mit Karteikarten. Was {N} schon sicher kann, kommt seltener dran.</p>');
@@ -693,7 +693,7 @@ dog.load(p=>{ $('loadBar').style.width=(p*100)+'%'; }).then(()=>{
   $('loadBar').style.width='100%'; const st=$('start'); st.style.display='block'; document.querySelector('#load .bar').style.display='none'; $('loadMsg').style.display='none';
   $('load').classList.remove('loading'); titleCam=!hasArt; { const c=room.centerOf('salon'); dog.root.position.set(c[0]+0.8,0,c[1]+0.4); } dog.yaw=0; dog.setPose(1,0); dog.wagAmt=0.8; dog.wagSpeed=11;
   if(P.name){ st.textContent=N('Weiter mit {N} 🐾'); document.querySelector('#load .cocoSays').textContent=N('Coucou ! {N} t\'attend !'); }
-  st.onclick=()=>{ guardHistory(); goFullscreen(); document.body.classList.remove('title'); titleCam=false; dog.setPose(0,0); dog.wagAmt=0.25; dog.wagSpeed=7; const s0=room.start; dog.root.position.set(s0.pos[0],0,s0.pos[1]); dog.yaw=s0.yaw; started=true; bump(); A.audioCtx(); A.startMusic(); A.sfx.pop(); $('load').style.opacity=0; setTimeout(()=>$('load').remove(),500); run.start(); if(P.name && !P.gender) setTimeout(()=>askGender(),1500);
+  st.onclick=()=>{ guardHistory(); goFullscreen(); document.body.classList.remove('title'); titleCam=false; dog.setPose(0,0); dog.wagAmt=0.25; dog.wagSpeed=7; const s0=room.start; dog.root.position.set(s0.pos[0],0,s0.pos[1]); dog.yaw=s0.yaw; started=true; bump(); A.audioCtx(); A.startMusic(); A.sfx.pop(); $('load').style.opacity=0; setTimeout(()=>$('load').remove(),500); if(P.gramCur&&GRAM[P.gramCur.id]){ run.startGram(P.gramCur.id,null,Math.max(0,Math.min(P.gramCur.i|0,GRAM[P.gramCur.id].steps.length-1))); toast('📘 Weiter, wo du aufgehört hast!',2600); } else run.start(); if(P.name && !P.gender) setTimeout(()=>askGender(),1500);
     setTimeout(badgeCheck,15000);
     setTimeout(function wishHint(){ if(!P.name) return; const w=todayWish(); if(w.told||w.done) return; if(UI.sheetIsOpen()||cocoSaved||ADV.active||run.review?.gram||run.hold){ setTimeout(wishHint,5000); return; } w.told=1; save(); toast(`🌟 <b class="fr">Aujourd'hui, {N} adore ${LIKES[w.kind].fr} !</b><br>Heute wünscht sich {N}: ${LIKES[w.kind].de} → +5 ❤️ <small>(tippe oben auf ❤️)</small>`,6000); }, 9000);
      };
