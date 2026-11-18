@@ -38,7 +38,7 @@ A.preloadMusic('music.mp3');
 function headScreen(){ const p=dog.headWorld(); p.y+=0.22; p.project(world.camera); return {x:(p.x*0.5+0.5)*innerWidth, y:(-p.y*0.5+0.5)*innerHeight}; }
 const fx={ hearts(n=3){ const s=headScreen(); UI.floatFx(s.x,s.y,['❤️','💛','✨','🧡'],n); } };
 dog.on('say',(t,ms)=>UI.dogSay(t,ms)); dog.on('hearts',n=>fx.hearts(n));
-export const VERSION='72';
+export const VERSION='73';
 try{ document.getElementById('ver').textContent='v'+VERSION; }catch(e){}
 function toast(html,ms=2600){ const t=$('toast'); t.innerHTML=N(html); t.classList.add('on'); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('on'),ms); }
 
@@ -336,8 +336,19 @@ document.addEventListener('keydown',e=>{
 });
 inp.addEventListener('input',()=>{ if(/\n/.test(inp.value)){ inp.value=inp.value.replace(/\n/g,''); submit(); } });
 // Tastatur auf dem Handy: Eingabezeile über die Tastatur schieben (im Vollbild legt sich die Tastatur sonst darüber)
-if(window.visualViewport){ const vv=visualViewport; const kb=()=>{ if(IOS && (scrollY||document.documentElement.scrollTop)) scrollTo(0,0); const h=Math.max(0, innerHeight-vv.height-vv.offsetTop); $('bottom').style.bottom= h>1? h+'px' : ''; layoutBubble(); };
+if(window.visualViewport){ const vv=visualViewport; const kb=()=>{ if(IOS && (scrollY||document.documentElement.scrollTop)) scrollTo(0,0); const h=Math.max(0, innerHeight-vv.height-vv.offsetTop); if(!(typeof vkH!=='undefined'&&vkH>1)) $('bottom').style.bottom= h>1? h+'px' : ''; if(h>80) document.body.classList.remove('kbtop'); layoutBubble(); };
   vv.addEventListener('resize',kb); vv.addEventListener('scroll',kb); }
+// Android-Vollbild: Tastatur meldet ihre Höhe über die VirtualKeyboard-API → Leiste exakt darüber
+let vkH=0;
+if('virtualKeyboard' in navigator){ try{ navigator.virtualKeyboard.overlaysContent=true;
+  navigator.virtualKeyboard.addEventListener('geometrychange',e=>{ vkH=Math.round(e.target.boundingRect?.height||0); $('bottom').style.bottom= vkH>1? vkH+'px' : ''; document.body.classList.toggle('kbtop',false); layoutBubble(); }); }catch(e){} }
+// Rückfall: Wenn sich nach dem Antippen nichts verschiebt, die Eingabe nach OBEN holen (dort verdeckt die Tastatur nichts)
+const coarse=matchMedia('(pointer:coarse)').matches;
+inp.addEventListener('focus',()=>{ if(!coarse) return; setTimeout(()=>{ if(document.activeElement!==inp) return; const lifted=parseFloat($('bottom').style.bottom||'0')>1;
+    const vvShrunk=window.visualViewport? (innerHeight-visualViewport.height)>80 : false; const layoutShrunk=innerHeight<(window.__h0||innerHeight)-80;
+    if(!lifted&&!vvShrunk&&!layoutShrunk){ document.body.classList.add('kbtop'); layoutBubble(); } },450); });
+inp.addEventListener('blur',()=>{ setTimeout(()=>{ if(document.activeElement!==inp){ document.body.classList.remove('kbtop'); layoutBubble(); } },150); });
+window.__h0=innerHeight; addEventListener('orientationchange',()=>setTimeout(()=>{ window.__h0=innerHeight; },600));
 document.querySelectorAll('#accents button').forEach(b=>b.addEventListener('pointerdown',e=>{ e.preventDefault(); const c=b.dataset.c; const s=inp.selectionStart??inp.value.length; inp.value=inp.value.slice(0,s)+c+inp.value.slice(inp.selectionEnd??s); inp.setSelectionRange(s+1,s+1); }));
 UI.initGloss();
 document.addEventListener('click',e=>{ if(e.target.closest('#bubble .w')) setTimeout(()=>run.event('word'),900); });
@@ -393,9 +404,10 @@ function layoutBubble(){ requestAnimationFrame(()=>{ const z=parseFloat(getCompu
   // Coco-Blase immer UNTER die Knopfleiste schieben (Notch/Kamera-Loch, Zoom, umgebrochene Leiste)
   let tb=0; $('top').querySelectorAll('*').forEach(el=>{ if(el.parentElement!==$('top')) return; const r=el.getBoundingClientRect(); if(r.height&&r.bottom>tb) tb=r.bottom; });
   const bot=$('bottom').getBoundingClientRect(); const co0=$('coco');
-  co0.style.bottom=((innerHeight-bot.top+6)/z)+'px';
+  const kbt=document.body.classList.contains('kbtop');
+  if(kbt){ co0.style.bottom='auto'; co0.style.setProperty('top',((bot.bottom+6)/z)+'px','important'); co0.style.alignItems='flex-start'; } else { co0.style.removeProperty('top'); co0.style.alignItems=''; co0.style.bottom=((innerHeight-bot.top+6)/z)+'px'; }
   // Karte darf höchstens bis knapp unter die Kopfzeile wachsen, normal ~36% des Bildschirms
-  const avail=Math.max(110,Math.min(innerHeight*0.36,(bot.top-tb-16)))/z; document.documentElement.style.setProperty('--bubbleMax',avail+'px');
+  const avail= kbt? Math.max(90,innerHeight*0.5-bot.bottom-14)/z : Math.max(110,Math.min(innerHeight*0.36,(bot.top-tb-16)))/z; document.documentElement.style.setProperty('--bubbleMax',avail+'px');
   const b=$('bubble'); b.classList.toggle('more', b.scrollHeight>b.clientHeight+4 && b.scrollTop+b.clientHeight<b.scrollHeight-4); }); }
 addEventListener('resize',layoutBubble); document.addEventListener('fullscreenchange',()=>{ layoutBubble(); setTimeout(layoutBubble,400); }); setInterval(layoutBubble,3000);
 // ---------- Kompakte Sprechblase (Handy): klappt nach dem Lesen ein, Tipp klappt auf ----------
